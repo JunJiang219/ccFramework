@@ -53,4 +53,12 @@ export class CCMResKeeper extends Component {
         resMgr.enableDelayDestroy(this);
         resMgr.releaseKeeperAssets(this);
     }
+
+    /**
+     * 手动释放资源
+     * @param immediately 是否立即释放资源
+     */
+    public releaseAssets(immediately: boolean = false) {
+        resMgr.releaseKeeperAssets(this, immediately);
+    }
 }
