@@ -14,7 +14,7 @@ export enum CCMResReleaseTiming {
 // 资源缓存参数
 export interface CCMResCacheArgs {
     releaseTiming: CCMResReleaseTiming; // 资源释放时机类型
-    delayTime?: number;                 // 延迟多少s释放，仅当 releaseTiming 为 DelayDestroy 时有效
+    delayTime?: number;                 // asset 延迟多少s释放，仅当 releaseTiming 为 DelayDestroy 时有效
 }
 
 // 资源缓存映射

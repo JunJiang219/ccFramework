@@ -6,6 +6,8 @@ import { ProgressCallback, resLoader } from "../res/CCMResLoader";
 import { CCMResCacheArgs, CCMResReleaseTiming } from "../res/CCMResManager";
 import CCMUIView, { CCMUIAniName, CCMUILayers, CCMUIShowType } from "./CCMUIView";
 
+const ASSET_DELAY_RELEASE_TIME = 60; // 资源默认延迟释放时间（单位：秒）
+
 // UI信息
 export interface CCMIUIInfo {
     uiId: number;                // UI ID
@@ -165,6 +167,7 @@ export default class CCMUIManager {
         // 如果找到缓存对象，则直接返回
         let uiView: CCMUIView | null = this._uiCache[uiId];
         if (uiView) {
+            uiView.cachedTS = 0;
             completeCallback(uiView);
             return;
         }
@@ -206,10 +209,10 @@ export default class CCMUIManager {
             // 异步加载UI预加载的资源
             this._autoLoadRes(uiView, () => {
                 uiView.init(uiId, ...args);
-                if (uiView.cache) {
+                if (uiView.cacheTime > 0) {
                     let cacheArgs: CCMResCacheArgs = {
                         releaseTiming: CCMResReleaseTiming.DelayDestroy,
-                        delayTime: 60    // 界面销毁后，asset缓存60秒
+                        delayTime: ASSET_DELAY_RELEASE_TIME    // 界面销毁后，asset再缓存一定时间
                     };
                     uiView.cacheAsset(prefab, cacheArgs);
                 } else {
@@ -328,8 +331,9 @@ export default class CCMUIManager {
 
             this._uiStack.splice(i, 1);
             uiView.onClose();
-            if (uiView.cache) {
+            if (uiView.cacheTime > 0) {
                 this._uiCache[uiId] = uiView;
+                uiView.cachedTS = Math.floor(Date.now() / 1000);
                 uiView.node.removeFromParent();
             } else {
                 uiView.node.destroy();
@@ -374,9 +378,10 @@ export default class CCMUIManager {
                 uiView.releaseAssets(true);
                 uiView.node.destroy();
             } else {
-                if (uiView.cache) {
+                if (uiView.cacheTime > 0) {
                     // 缓存ui、asset
                     this._uiCache[uiId] = uiView;
+                    uiView.cachedTS = Math.floor(Date.now() / 1000);
                     uiView.node.removeFromParent();
                 } else {
                     // 立即释放ui、asset可能延迟释放

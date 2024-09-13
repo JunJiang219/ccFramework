@@ -27,6 +27,8 @@ export enum CCMUIAniName {
     UIClose = "uiClose",        // 界面关闭动画
 }
 
+const UI_CACHE_TIME = 180; // 界面默认缓存时间(单位：秒)
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -36,9 +38,9 @@ export default class CCMUIView extends CCMResKeeper {
     @property
     quickClose: boolean = false;
 
-    // 缓存选项
-    @property
-    cache: boolean = false;
+    // 缓存时间(单位：秒)
+    @property({ type: cc.Integer })
+    cacheTime: number = UI_CACHE_TIME;
 
     // 界面展示类型
     @property({ type: cc.Enum(CCMUIShowType) })
@@ -55,8 +57,9 @@ export default class CCMUIView extends CCMResKeeper {
     private _layer: CCMUILayers = CCMUILayers.Game; // 界面层级
     public get layer(): CCMUILayers { return this._layer; }
 
-    public isOpening: boolean = false; // 是否正在打开
-    public isClosing: boolean = false; // 是否正在关闭
+    public isOpening: boolean = false;  // 是否正在打开
+    public isClosing: boolean = false;  // 是否正在关闭
+    public cachedTS: number = 0;        // 开始缓存时间戳
 
     /**
      * 当界面被创建时回调，生命周期内只调用一次(子类复写必须前置调用该父类逻辑)
