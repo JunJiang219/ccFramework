@@ -14,12 +14,17 @@ export enum CCMResReleaseTiming {
 // 资源缓存参数
 export interface CCMResCacheArgs {
     releaseTiming: CCMResReleaseTiming; // 资源释放时机类型
-    keepTime?: number;                  // 持有时间，单位：秒，仅当 releaseTiming 为 DelayDestroy 时有效
-    unKeepTimestamp?: number;           // 不再持有资源的时间戳，单位：秒，仅当 releaseTiming 为 DelayDestroy 时有效
+    delayTime?: number;                 // 延迟多少s释放，仅当 releaseTiming 为 DelayDestroy 时有效
 }
 
 // 资源缓存映射
 export type CCMResCacheMap = Map<Asset, CCMResCacheArgs>;
+
+// 资源缓存信息
+export interface CCMResCacheInfo {
+    cacheMap: CCMResCacheMap;           // 资源缓存映射
+    keeperInvalidTS?: number;           // keeper 失效时间戳，单位：秒
+}
 
 export class CCMResManager {
     private static _instance: CCMResManager = null;
@@ -31,38 +36,24 @@ export class CCMResManager {
         return CCMResManager._instance;
     }
 
-    private _resMap: Map<CCMResKeeper, CCMResCacheMap> = new Map<CCMResKeeper, CCMResCacheMap>();
+    private _resMap: Map<CCMResKeeper, CCMResCacheInfo> = new Map<CCMResKeeper, CCMResCacheInfo>();
     private _updateElapsed: number = 0;
 
     // 缓存资源
     public cacheAsset(resKeeper: CCMResKeeper, asset: Asset, args?: CCMResCacheArgs): void {
-        let cacheMap: CCMResCacheMap = this._resMap.get(resKeeper);
-        if (undefined == cacheMap) {
-            cacheMap = new Map<Asset, CCMResCacheArgs>();
-            this._resMap.set(resKeeper, cacheMap);
+        let cacheInfo: CCMResCacheInfo = this._resMap.get(resKeeper);
+        if (undefined == cacheInfo) {
+            cacheInfo = { cacheMap: new Map<Asset, CCMResCacheArgs>() };
+            this._resMap.set(resKeeper, cacheInfo);
         }
 
+        let cacheMap: CCMResCacheMap = cacheInfo.cacheMap;
         if (!cacheMap.has(asset)) {
             asset.addRef();
             if (args) {
                 cacheMap.set(asset, args);
             } else {
                 cacheMap.set(asset, { releaseTiming: CCMResReleaseTiming.OnDestroy });
-            }
-        }
-    }
-
-    // 激活 keeper 的延迟释放资源
-    public enableDelayDestroy(resKeeper: CCMResKeeper): void {
-        let cacheMap: CCMResCacheMap = this._resMap.get(resKeeper);
-        if (undefined == cacheMap) {
-            return;
-        }
-
-        let curTimestamp = Math.floor(Date.now() / 1000);   // 当前时间戳（s）
-        for (const [asset, args] of cacheMap) {
-            if (args.releaseTiming == CCMResReleaseTiming.DelayDestroy && !args.unKeepTimestamp) {
-                args.unKeepTimestamp = curTimestamp;
             }
         }
     }
@@ -74,10 +65,10 @@ export class CCMResManager {
      * @returns 
      */
     public releaseKeeperAssets(resKeeper: CCMResKeeper, immediately: boolean = false): void {
-        let cacheMap: CCMResCacheMap = this._resMap.get(resKeeper);
-        if (undefined == cacheMap) {
-            return;
-        }
+        let cacheInfo: CCMResCacheInfo = this._resMap.get(resKeeper);
+        if (undefined == cacheInfo) return;
+        let cacheMap: CCMResCacheMap = cacheInfo.cacheMap;
+        if (undefined == cacheMap) return;
 
         if (immediately) {
             for (const asset of cacheMap.keys()) {
@@ -92,8 +83,8 @@ export class CCMResManager {
                     asset.decRef();
                     cacheMap.delete(asset);
                 } else if (args.releaseTiming == CCMResReleaseTiming.DelayDestroy) {
-                    if (!args.unKeepTimestamp) continue; // 延迟释放资源，还未请求释放，忽略
-                    if (curTimestamp - args.unKeepTimestamp >= args.keepTime) {
+                    if (!cacheInfo.keeperInvalidTS) continue; // 延迟释放资源，还未请求释放，忽略
+                    if (curTimestamp - cacheInfo.keeperInvalidTS >= args.delayTime) {
                         asset.decRef();
                         cacheMap.delete(asset);
                     }
@@ -111,8 +102,11 @@ export class CCMResManager {
      * @param immediately 是否立即释放
      */
     public releaseAssets(immediately: boolean = false): void {
-        for (const resKeeper of this._resMap.keys()) {
+        for (const [resKeeper, cacheInfo] of this._resMap) {
             if (!cc.isValid(resKeeper)) {
+                if (!cacheInfo.keeperInvalidTS) {
+                    cacheInfo.keeperInvalidTS = Math.floor(Date.now() / 1000);
+                }
                 this.releaseKeeperAssets(resKeeper, immediately);
             }
         }

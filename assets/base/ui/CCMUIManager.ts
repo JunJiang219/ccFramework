@@ -4,7 +4,7 @@
 
 import { ProgressCallback, resLoader } from "../res/CCMResLoader";
 import { CCMResCacheArgs, CCMResReleaseTiming } from "../res/CCMResManager";
-import CCMUIView, { CCMUILayers, CCMUIShowType } from "./CCMUIView";
+import CCMUIView, { CCMUIAniName, CCMUILayers, CCMUIShowType } from "./CCMUIView";
 
 // UI信息
 export interface CCMIUIInfo {
@@ -112,12 +112,17 @@ export default class CCMUIManager {
 
         // 隐藏不该显示的UI
         for (; hideIndex < showIndex; ++hideIndex) {
-            let mode = this._uiStack[hideIndex].uiView!.showType;
-            if (CCMUIShowType.UIIndependent == mode) {
-                continue;
-            } else {
-                this._uiStack[hideIndex].uiView!.node.active = false;
+            let uiInfo = this._uiStack[hideIndex];
+            if (uiInfo.uiView) {
+                let mode = uiInfo.uiView!.showType;
+                if (CCMUIShowType.UIIndependent == mode) {
+                    continue;
+                } else {
+                    if (uiInfo.uiView!.isOpening || uiInfo.uiView!.isClosing) continue; // 动画中不做隐藏处理
+                    this._uiStack[hideIndex].uiView!.node.active = false;
+                }
             }
+
         }
     }
 
@@ -126,9 +131,18 @@ export default class CCMUIManager {
      * @param aniName 动画名
      * @param aniOverCallback 动画播放完成回调
      */
-    private _autoExecAnimation(uiView: CCMUIView, aniName: string, aniOverCallback: () => void) {
+    private _autoExecAnimation(uiView: CCMUIView, aniName: string, aniOverCallback: (...args: any[]) => void) {
         // 暂时先省略动画播放的逻辑
-        aniOverCallback();
+        switch (aniName) {
+            case CCMUIAniName.UIOpen:
+                // 播放动画
+                uiView.execOpenAni(aniOverCallback);
+                break;
+            case CCMUIAniName.UIClose:
+                // 播放动画
+                uiView.execCloseAni(aniOverCallback);
+                break;
+        }
     }
 
     /**
@@ -195,7 +209,7 @@ export default class CCMUIManager {
                 if (uiView.cache) {
                     let cacheArgs: CCMResCacheArgs = {
                         releaseTiming: CCMResReleaseTiming.DelayDestroy,
-                        keepTime: 60    // 界面销毁后，asset缓存60秒
+                        delayTime: 60    // 界面销毁后，asset缓存60秒
                     };
                     uiView.cacheAsset(prefab, cacheArgs);
                 } else {
@@ -213,11 +227,17 @@ export default class CCMUIManager {
             return;
         }
 
+        let index = this.getUIIndex(uiId);
+        if (index >= 0) {
+            this._closeToUI(uiId, true, ...args);
+            return;
+        }
+
         let uiInfo: CCMIUIInfo = {
             uiId: uiId,
             uiView: null,
             layer: uiConf.layer,
-            zOrder: uiConf.zOrder
+            zOrder: uiConf.zOrder,
         };
         this._uiStack.push(uiInfo);
         this._uiStack.sort(this._sortUIStack);
@@ -225,6 +245,14 @@ export default class CCMUIManager {
         this._getOrCreateUI(uiId, progressCallback, (uiView: CCMUIView | null) => {
             if (!uiView) {
                 console.log(`getOrCreateUI ${uiId} failed!`);
+
+                let uiIndex = this.getUIIndex(uiId);
+                if (uiIndex >= 0) {
+                    // 创建失败，从堆栈删除
+                    this._uiStack.splice(uiIndex, 1);
+                    this._updateUI();
+                }
+
                 return;
             }
 
@@ -243,21 +271,77 @@ export default class CCMUIManager {
         if (!uiView) return;
 
         uiInfo.uiView = uiView;
+        uiView.isOpening = true;
         uiView.node.zIndex = uiInfo.zOrder;
         uiView.node.parent = this._layerRoot[uiInfo.layer];
         uiView.node.active = true;
 
-        // 刷新其他UI
+        // 动画前刷新其他UI，防止动画bug导致UI显示异常
         this._updateUI();
 
-        uiView.onOpen(...args);
-        this._autoExecAnimation(uiView, "uiOpen", () => {
+        // 从哪个界面打开的
+        let fromUI: CCMUIView = null!;
+        if (this._uiStack.length > 1) {
+            let index = this._uiStack.length - 1;
+            if (this.isTopShowUI(uiView)) {
+                index--;
+            }
+
+            for (; index >= 0; index--) {
+                let tmpUIView = this._uiStack[index].uiView;
+                if (!tmpUIView) continue;       // 跳过未加载完成的UI
+
+                if (tmpUIView.showType != CCMUIShowType.UIIndependent) {
+                    fromUI = tmpUIView;
+                    break;
+                } else if (tmpUIView.showType == CCMUIShowType.UIIndependent && tmpUIView.node.active) {
+                    fromUI = tmpUIView;
+                    break;
+                }
+            }
+        }
+
+        uiView.onOpen(fromUI, ...args);
+        this._autoExecAnimation(uiView, "uiOpen", (...args: any[]) => {
             // 动画播放完成回调
+            uiView.isOpening = false;
+            // 动画结束再次刷新
+            this._updateUI();
         });
     }
 
+    private _closeToUI(uiId: number, bOpenSelf: boolean = true, ...args: any[]): void {
+        let uiIndex = this.getUIIndex(uiId);
+        if (uiIndex < 0) {
+            console.log(`_closeToUI ${uiId} failed! not found`);
+            return;
+        }
+
+        let minIndex = bOpenSelf ? uiIndex : uiIndex + 1;       // 需要关闭的最小索引
+        for (let i = this._uiStack.length - 1; i >= minIndex; --i) {
+            let uiInfo = this._uiStack[i];
+            let uiId = uiInfo.uiId;
+            let uiView = uiInfo.uiView;
+
+            if (!uiView) continue;
+            if (uiView.showType == CCMUIShowType.UIIndependent) continue;
+
+            this._uiStack.splice(i, 1);
+            uiView.onClose();
+            if (uiView.cache) {
+                this._uiCache[uiId] = uiView;
+                uiView.node.removeFromParent();
+            } else {
+                uiView.node.destroy();
+            }
+        }
+
+        this._updateUI();
+        bOpenSelf && this.open(uiId, null, ...args);
+    }
+
     // 关闭指定界面
-    public close(uiOrId: CCMUIView | number, ignoreCache: boolean = false) {
+    public close(uiOrId: CCMUIView | number, noCache: boolean = false) {
         let uiIndex = this.getUIIndex(uiOrId);
         if (uiIndex < 0) {
             if ('number' == typeof uiOrId) {
@@ -271,11 +355,13 @@ export default class CCMUIManager {
         let uiInfo = this._uiStack[uiIndex];
         let uiId = uiInfo.uiId;
         let uiView = uiInfo.uiView;
+        uiView!.isClosing = true;
         this._uiStack.splice(uiIndex, 1);
         this._updateUI();
 
-        this._autoExecAnimation(uiView, "uiClose", () => {
+        this._autoExecAnimation(uiView, "uiClose", (...args: any[]) => {
             // 动画播放完成回调
+            uiView!.isClosing = false;
             let preUIView = this.getTopShowUI();
             if (preUIView) {
                 preUIView.onTop(uiView, uiView.onClose());
@@ -283,7 +369,7 @@ export default class CCMUIManager {
                 uiView.onClose();
             }
 
-            if (ignoreCache) {
+            if (noCache) {
                 // 立即释放ui、asset
                 uiView.releaseAssets(true);
                 uiView.node.destroy();
@@ -297,13 +383,15 @@ export default class CCMUIManager {
                     uiView.node.destroy();
                 }
             }
+
+            this._updateUI();
         });
     }
 
     // 关闭所有界面
-    public closeAll(ignoreCache: boolean = false) {
+    public closeAll(noCache: boolean = false) {
         // 不播放动画，也不清理缓存
-        if (ignoreCache) {
+        if (noCache) {
             for (const uiInfo of this._uiStack) {
                 if (cc.isValid(uiInfo.uiView)) {
                     uiInfo.uiView.onClose();
@@ -402,4 +490,21 @@ export default class CCMUIManager {
 
         return false;
     }
+
+    // 是否栈顶显示UI
+    public getPreShowUI(uiOrId: CCMUIView | number): CCMUIView | null {
+        let uiIndex = this.getUIIndex(uiOrId);
+        if (uiIndex <= 0) { return null; }
+
+        for (let i = uiIndex - 1; i >= 0; i--) {
+            let uiInfo = this._uiStack[i];
+            if (uiInfo.uiView!.showType != CCMUIShowType.UIIndependent) {
+                return uiInfo.uiView!;
+            } else if (uiInfo.uiView!.showType == CCMUIShowType.UIIndependent && uiInfo.uiView!.node.active) {
+                return uiInfo.uiView!;
+            }
+        }
+    }
 }
+
+export const uiMgr = CCMUIManager.inst;
