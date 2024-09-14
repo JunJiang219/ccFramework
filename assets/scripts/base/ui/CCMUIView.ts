@@ -70,10 +70,10 @@ export default class CCMUIView extends CCMResKeeper {
 
     /**
      * 当界面被打开时回调，每次调用 open 时回调
-     * @param fromUI 从哪个UI打开的
+     * @param fromUIID 从哪个UI打开的
      * @param args 可变参数
      */
-    public onOpen(fromUI: CCMUIView, ...args: any[]): void { }
+    public onOpen(fromUIID: number, ...args: any[]): void { }
 
     // 界面打开动画
     public execOpenAni(finishCb: (...args: any[]) => void) { finishCb(); }
@@ -89,8 +89,8 @@ export default class CCMUIView extends CCMResKeeper {
 
     /**
      * 当界面被置顶时回调，open 时并不会回调该函数
-     * @param preUI 前一个ui
+     * @param preUIID 前一个ui
      * @param args 可变参数，
      */
-    public onTop(preUIView: CCMUIView, ...args: any[]): void { }
+    public onTop(preUIID: number, ...args: any[]): void { }
 }

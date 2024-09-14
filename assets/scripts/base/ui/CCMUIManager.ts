@@ -287,7 +287,7 @@ export default class CCMUIManager {
         this._updateUI();
 
         // 从哪个界面打开的
-        let fromUI: CCMUIView = null!;
+        let fromUIID: number = -1;
         if (this._uiStack.length > 1) {
             let index = this._uiStack.length - 1;
             if (this.isTopShowUI(uiView)) {
@@ -299,16 +299,16 @@ export default class CCMUIManager {
                 if (!tmpUIView) continue;       // 跳过未加载完成的UI
 
                 if (tmpUIView.showType != CCMUIShowType.UIIndependent) {
-                    fromUI = tmpUIView;
+                    fromUIID = tmpUIView.uiId;
                     break;
                 } else if (tmpUIView.showType == CCMUIShowType.UIIndependent && tmpUIView.node.active) {
-                    fromUI = tmpUIView;
+                    fromUIID = tmpUIView.uiId;
                     break;
                 }
             }
         }
 
-        uiView.onOpen(fromUI, ...args);
+        uiView.onOpen(fromUIID, ...args);
         this._autoExecAnimation(uiView, "uiOpen", (...args: any[]) => {
             // 动画播放完成回调
             uiView.isOpening = false;
@@ -373,7 +373,7 @@ export default class CCMUIManager {
             uiView!.isClosing = false;
             let preUIView = this.getTopShowUI();
             if (preUIView) {
-                preUIView.onTop(uiView, uiView.onClose());
+                preUIView.onTop(uiView.uiId, uiView.onClose());
             } else {
                 uiView.onClose();
             }
