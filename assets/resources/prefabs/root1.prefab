@@ -185,13 +185,16 @@
     "sync": false
   },
   {
-    "__type__": "c25c5V+SQVIqIfMCV463+L4",
+    "__type__": "4b16eEzW55IELf1SofQ4a0/",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
-    "_enabled": false,
+    "_enabled": true,
+    "quickClose": false,
+    "cacheTime": 5,
+    "showType": 0,
     "_id": ""
   },
   {

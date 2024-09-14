@@ -116,7 +116,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        0,
+        200,
         0,
         0,
         0,
@@ -185,13 +185,16 @@
     "sync": false
   },
   {
-    "__type__": "c25c5V+SQVIqIfMCV463+L4",
+    "__type__": "4b16eEzW55IELf1SofQ4a0/",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
+    "quickClose": false,
+    "cacheTime": 0,
+    "showType": 0,
     "_id": ""
   },
   {

@@ -13,10 +13,11 @@ export default class GameInit extends cc.Component {
 
     onLoad() {
         cc.game.addPersistRootNode(this.node);
+        gameMgr.init();
     }
 
     start() {
-        gameMgr.init();
+
     }
 
     update(dt: number) {

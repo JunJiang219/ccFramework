@@ -8,6 +8,6 @@ export enum UIID {
 
 let baseZOrder_Game = 0;
 export const UIConfig: { [uiId: number]: CCMIUIConf } = {
-    [UIID.ROOT1]: { prefabPath: "prefabs/UI/Root1.prefab", layer: CCMUILayers.Game, zOrder: baseZOrder_Game++, preventTouch: true },
-    [UIID.ROOT2]: { prefabPath: "prefabs/UI/Root2.prefab", layer: CCMUILayers.Game, zOrder: baseZOrder_Game++, preventTouch: true },
+    [UIID.ROOT1]: { prefabPath: "prefabs/root1", layer: CCMUILayers.Game, zOrder: baseZOrder_Game++, preventTouch: true },
+    [UIID.ROOT2]: { prefabPath: "prefabs/root2", layer: CCMUILayers.Game, zOrder: baseZOrder_Game++, preventTouch: true },
 };
