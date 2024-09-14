@@ -20,17 +20,14 @@ export default class Test extends cc.Component {
     // onLoad () {}
 
     start() {
-        let a = new Map<number, { name: string, age?: number }>();
-        a.set(1, { name: 'Alice', age: 20 });
-        a.set(2, { name: 'Bob' });
-        a.set(3, { name: 'Charlie', age: 40 });
-        let val = a.get(2);
-        console.log(val.name, val.age);
-        // a.set(2, { name: 'David', age: 50 });
-        val.name = 'Eve';
-        val.age = 60;
-        console.log(val.name, val.age);
-        console.log(a.get(2).name, a.get(2).age);
+        let a: { [key: number]: string } = {};
+        a[1] = 'a';
+        a[2] = 'b';
+        a[3] = 'c';
+        console.log(a);
+        delete a[5];
+        console.log(a);
+        console.log(Object.keys(a));
     }
 
     dump() {

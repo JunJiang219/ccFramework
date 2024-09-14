@@ -5,16 +5,18 @@
 import { CCMResKeeper } from "./CCMResKeeper";
 import Asset = cc.Asset;
 
+const RES_UPDATE_INTERVAL = 5;  // 资源管理器更新间隔（单位：秒）
+
 // 资源释放时机类型
 export enum CCMResReleaseTiming {
     OnDestroy,      // 组件销毁时，立即释放
-    DelayDestroy,   // 组件销毁时，延迟释放
+    AfterDestroy,   // 组件销毁后，延迟一定时间释放
 }
 
 // 资源缓存参数
 export interface CCMResCacheArgs {
     releaseTiming: CCMResReleaseTiming; // 资源释放时机类型
-    delayTime?: number;                 // asset 延迟多少s释放，仅当 releaseTiming 为 DelayDestroy 时有效
+    keepTime?: number;                  // keeper销毁后，asset 还能存活的时间（单位：秒），仅当 releaseTiming 为 AfterDestroy 时有效
 }
 
 // 资源缓存映射
@@ -39,7 +41,12 @@ export class CCMResManager {
     private _resMap: Map<CCMResKeeper, CCMResCacheInfo> = new Map<CCMResKeeper, CCMResCacheInfo>();
     private _updateElapsed: number = 0;
 
-    // 缓存资源
+    /**
+     * 缓存指定资源
+     * @param resKeeper 资源持有者
+     * @param asset 资源
+     * @param args 缓存参数（不填则默认释放时机为 OnDestroy）
+     */
     public cacheAsset(resKeeper: CCMResKeeper, asset: Asset, args?: CCMResCacheArgs): void {
         let cacheInfo: CCMResCacheInfo = this._resMap.get(resKeeper);
         if (undefined == cacheInfo) {
@@ -82,9 +89,9 @@ export class CCMResManager {
                 if (args.releaseTiming == CCMResReleaseTiming.OnDestroy) {
                     asset.decRef();
                     cacheMap.delete(asset);
-                } else if (args.releaseTiming == CCMResReleaseTiming.DelayDestroy) {
-                    if (!cacheInfo.keeperInvalidTS) continue; // 延迟释放资源，还未请求释放，忽略
-                    if (curTimestamp - cacheInfo.keeperInvalidTS >= args.delayTime) {
+                } else if (args.releaseTiming == CCMResReleaseTiming.AfterDestroy) {
+                    if (!cacheInfo.keeperInvalidTS) continue; // keeper 失效时间戳未设置，不延迟释放资源
+                    if (curTimestamp - cacheInfo.keeperInvalidTS >= args.keepTime) {
                         asset.decRef();
                         cacheMap.delete(asset);
                     }
@@ -115,7 +122,7 @@ export class CCMResManager {
     // 更新资源管理器，释放过期资源
     public update(dt: number) {
         this._updateElapsed += dt;
-        if (this._updateElapsed >= 5) {
+        if (this._updateElapsed >= RES_UPDATE_INTERVAL) {
             // 每5秒更新一次
             this._updateElapsed = 0;
             this.releaseAssets();

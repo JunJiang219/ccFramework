@@ -7,7 +7,7 @@ import { CCMResKeeper } from "../res/CCMResKeeper";
 // 界面展示类型
 export enum CCMUIShowType {
     UISingle,       // 单界面显示，显示时会隐藏其他低层级界面（独立界面除外），性能较好
-    UIAddition,     // 叠加显示，不影响其他界面低层级界面，性能较差
+    UIAddition,     // 叠加显示，不影响其他界面，性能较差
     UIIndependent,  // 独立显示，不影响其他界面，也不被其他界面影响，少用
 }
 
@@ -59,7 +59,7 @@ export default class CCMUIView extends CCMResKeeper {
 
     public isOpening: boolean = false;  // 是否正在打开
     public isClosing: boolean = false;  // 是否正在关闭
-    public cachedTS: number = 0;        // 开始缓存时间戳
+    public cachedTS: number = 0;        // 开始缓存的时间戳
 
     /**
      * 当界面被创建时回调，生命周期内只调用一次(子类复写必须前置调用该父类逻辑)

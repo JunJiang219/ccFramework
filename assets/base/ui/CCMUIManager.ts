@@ -7,13 +7,14 @@ import { CCMResCacheArgs, CCMResReleaseTiming } from "../res/CCMResManager";
 import CCMUIView, { CCMUIAniName, CCMUILayers, CCMUIShowType } from "./CCMUIView";
 
 const ASSET_DELAY_RELEASE_TIME = 60; // 资源默认延迟释放时间（单位：秒）
+const UI_UPDATE_INTERVAL = 5;        // UI管理器更新间隔（单位：秒）
 
 // UI信息
 export interface CCMIUIInfo {
-    uiId: number;                // UI ID
-    uiView: CCMUIView | null;    // UI视图
-    layer: CCMUILayers;          // 层级
-    zOrder: number;              // 层级顺序
+    uiId: number;                           // UI ID
+    uiView: CCMUIView | null;               // UI视图
+    layer: CCMUILayers;                     // 层级
+    zOrder: number;                         // 层级顺序
 }
 
 // UI配置
@@ -47,6 +48,8 @@ export default class CCMUIManager {
     private _uiStack: CCMIUIInfo[] = [];
     // ui配置
     private _uiConf: { [uiId: number]: CCMIUIConf } = {};
+    // ui更新历时
+    private _updateElapsed: number = 0;
 
     // 初始化ui配置
     public initUIConf(uiConf: { [uiId: number]: CCMIUIConf }) {
@@ -168,6 +171,7 @@ export default class CCMUIManager {
         let uiView: CCMUIView | null = this._uiCache[uiId];
         if (uiView) {
             uiView.cachedTS = 0;
+            delete this._uiCache[uiId]; // 移出缓存队列
             completeCallback(uiView);
             return;
         }
@@ -211,8 +215,8 @@ export default class CCMUIManager {
                 uiView.init(uiId, ...args);
                 if (uiView.cacheTime > 0) {
                     let cacheArgs: CCMResCacheArgs = {
-                        releaseTiming: CCMResReleaseTiming.DelayDestroy,
-                        delayTime: ASSET_DELAY_RELEASE_TIME    // 界面销毁后，asset再缓存一定时间
+                        releaseTiming: CCMResReleaseTiming.AfterDestroy,
+                        keepTime: ASSET_DELAY_RELEASE_TIME    // 界面销毁后，asset再缓存一定时间
                     };
                     uiView.cacheAsset(prefab, cacheArgs);
                 } else {
@@ -336,6 +340,7 @@ export default class CCMUIManager {
                 uiView.cachedTS = Math.floor(Date.now() / 1000);
                 uiView.node.removeFromParent();
             } else {
+                uiView.cachedTS = 0;
                 uiView.node.destroy();
             }
         }
@@ -375,6 +380,7 @@ export default class CCMUIManager {
 
             if (noCache) {
                 // 立即释放ui、asset
+                uiView.cachedTS = 0;
                 uiView.releaseAssets(true);
                 uiView.node.destroy();
             } else {
@@ -385,6 +391,7 @@ export default class CCMUIManager {
                     uiView.node.removeFromParent();
                 } else {
                     // 立即释放ui、asset可能延迟释放
+                    uiView.cachedTS = 0;
                     uiView.node.destroy();
                 }
             }
@@ -418,13 +425,33 @@ export default class CCMUIManager {
     // 清理界面缓存
     public clearCache() {
         for (const key in this._uiCache) {
-            let ui = this._uiCache[key];
-            if (cc.isValid(ui)) {
-                ui.releaseAssets(true);
-                ui.node.destroy();
+            let uiView = this._uiCache[key];
+            if (cc.isValid(uiView)) {
+                uiView.releaseAssets(true);
+                uiView.node.destroy();
             }
         }
         this._uiCache = {};
+    }
+
+    public update(dt: number) {
+        this._updateElapsed += dt;
+        if (this._updateElapsed >= UI_UPDATE_INTERVAL) {
+            // 每5秒更新一次
+            this._updateElapsed = 0;
+            let curTimestamp = Math.floor(Date.now() / 1000);
+            for (const key in this._uiCache) {
+                let uiView = this._uiCache[key];
+                if (cc.isValid(uiView) && uiView.cacheTime > 0) {
+                    if (curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
+                        // 缓存过期，销毁界面
+                        uiView.destroy();
+                        delete this._uiCache[key];
+                    }
+                }
+            }
+        }
+
     }
 
     // 获取堆栈中的UI
