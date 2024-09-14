@@ -115,6 +115,7 @@ export default class Test extends cc.Component {
 
     remove1() {
         if (this._node1) {
+            this._node1.active = false;
             this._node1.getComponent("Root").enabled = false;
             this._node1.removeFromParent(true);
             this.scheduleOnce(() => {
