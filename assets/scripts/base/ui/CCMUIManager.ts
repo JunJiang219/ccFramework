@@ -4,7 +4,7 @@
 
 import { ProgressCallback, resLoader } from "../res/CCMResLoader";
 import { CCMResCacheArgs, CCMResReleaseTiming } from "../res/CCMResManager";
-import CCMUIView, { CCMUIAniName, CCMUILayers, CCMUIShowType } from "./CCMUIView";
+import CCMUIView, { CCMUIAniName, CCMUILayerID, CCMUIShowType } from "./CCMUIView";
 
 const ASSET_DELAY_RELEASE_TIME = 60; // 资源默认延迟释放时间（单位：秒）
 const UI_UPDATE_INTERVAL = 5;        // UI管理器更新间隔（单位：秒）
@@ -13,7 +13,7 @@ const UI_UPDATE_INTERVAL = 5;        // UI管理器更新间隔（单位：秒�
 export interface CCMIUIInfo {
     uiId: number;                           // UI ID
     uiView: CCMUIView | null;               // UI视图
-    layer: CCMUILayers;                     // 层级
+    layerId: CCMUILayerID;                  // 层级id
     zOrder: number;                         // 层级顺序
 }
 
@@ -21,7 +21,7 @@ export interface CCMIUIInfo {
 export interface CCMIUIConf {
     bundleName?: string;          // bundle名，不配则取默认值 'resources'
     prefabPath: string;           // UI预制体路径
-    layer: CCMUILayers;           // 层级
+    layerId: CCMUILayerID;        // 层级id
     zOrder: number;               // 层级顺序
     preventTouch?: boolean;       // 是否阻止触摸事件向下传递
 }
@@ -57,16 +57,16 @@ export default class CCMUIManager {
     }
 
     // 获取层级根节点
-    public getLayerRoot(layer: CCMUILayers): cc.Node {
-        return this._layerRoot[layer];
+    public getLayerRoot(layerId: CCMUILayerID): cc.Node {
+        return this._layerRoot[layerId];
     }
 
     public init() {
         // 初始化层级根节点
         if (0 === this._layerRoot.length) {
             let cvs = cc.find("Canvas");
-            for (let i = 0; i < CCMUILayers.Num; i++) {
-                let layerRoot = new cc.Node(`Layer${i}`);
+            for (let i = 0; i < CCMUILayerID.Num; i++) {
+                let layerRoot = new cc.Node(`@Layer${i}`);
                 layerRoot.zIndex = i;
                 layerRoot.setPosition(0, 0);
                 layerRoot.setContentSize(cvs.width, cvs.height);
@@ -90,10 +90,10 @@ export default class CCMUIManager {
 
     // ui栈排序（layer升序 -> zOrder升序）
     private _sortUIStack(uiA: CCMIUIInfo, uiB: CCMIUIInfo) {
-        if (uiA.layer === uiB.layer) {
+        if (uiA.layerId === uiB.layerId) {
             return (uiA.zOrder - uiB.zOrder);
         } else {
-            return (uiA.layer - uiB.layer);
+            return (uiA.layerId - uiB.layerId);
         }
     }
 
@@ -243,7 +243,7 @@ export default class CCMUIManager {
         let uiInfo: CCMIUIInfo = {
             uiId: uiId,
             uiView: null,
-            layer: uiConf.layer,
+            layerId: uiConf.layerId,
             zOrder: uiConf.zOrder,
         };
         this._uiStack.push(uiInfo);
@@ -280,7 +280,7 @@ export default class CCMUIManager {
         uiInfo.uiView = uiView;
         uiView.isOpening = true;
         uiView.node.zIndex = uiInfo.zOrder;
-        uiView.node.parent = this._layerRoot[uiInfo.layer];
+        uiView.node.parent = this._layerRoot[uiInfo.layerId];
         uiView.node.active = true;
 
         // 动画前刷新其他UI，防止动画bug导致UI显示异常
@@ -401,25 +401,39 @@ export default class CCMUIManager {
     }
 
     // 关闭所有界面
-    public closeAll(noCache: boolean = false) {
+    public closeAll(noCache: boolean = false, ignoreUIIds?: number[]) {
         // 不播放动画，也不清理缓存
+        ignoreUIIds = ignoreUIIds || [];
+        let newUIStack: CCMIUIInfo[] = [];
         if (noCache) {
             for (const uiInfo of this._uiStack) {
                 if (cc.isValid(uiInfo.uiView)) {
-                    uiInfo.uiView.onClose();
-                    uiInfo.uiView.releaseAssets(true);
-                    uiInfo.uiView.node.destroy();
+                    if (ignoreUIIds.indexOf(uiInfo.uiId) < 0) {
+                        // 不在忽略列表中, 立即释放ui、asset
+                        uiInfo.uiView.onClose();
+                        uiInfo.uiView.releaseAssets(true);
+                        uiInfo.uiView.node.destroy();
+                    } else {
+                        // 在忽略列表中, 放入新列表
+                        newUIStack.push(uiInfo);
+                    }
                 }
             }
         } else {
             for (const uiInfo of this._uiStack) {
                 if (cc.isValid(uiInfo.uiView)) {
-                    uiInfo.uiView.onClose();
-                    uiInfo.uiView.node.destroy();
+                    if (ignoreUIIds.indexOf(uiInfo.uiId) < 0) {
+                        // 不在忽略列表中, 立即销毁ui
+                        uiInfo.uiView.onClose();
+                        uiInfo.uiView.node.destroy();
+                    } else {
+                        // 在忽略列表中, 放入新列表
+                        newUIStack.push(uiInfo);
+                    }
                 }
             }
         }
-        this._uiStack = [];
+        this._uiStack = newUIStack;
     }
 
     // 清理界面缓存

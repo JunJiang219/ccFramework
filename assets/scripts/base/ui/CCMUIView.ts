@@ -11,8 +11,8 @@ export enum CCMUIShowType {
     UIIndependent,  // 独立显示，不影响其他界面，也不被其他界面影响，少用
 }
 
-// 界面层级
-export enum CCMUILayers {
+// 界面层级id
+export enum CCMUILayerID {
     Game,           // 游戏界面层级
     Popup,          // 弹窗层级
     Notice,         // 提示层级
@@ -53,9 +53,6 @@ export default class CCMUIView extends CCMResKeeper {
 
     private _instId: number = 0; // 界面实例唯一标识符
     public get instId(): number { return this._instId; }
-
-    private _layer: CCMUILayers = CCMUILayers.Game; // 界面层级
-    public get layer(): CCMUILayers { return this._layer; }
 
     public isOpening: boolean = false;  // 是否正在打开
     public isClosing: boolean = false;  // 是否正在关闭
