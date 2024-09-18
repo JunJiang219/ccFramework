@@ -2,6 +2,7 @@
  * UI管理器
  */
 
+import DefaultKeeper from "../../manager/DefaultKeeper";
 import { ProgressCallback, resLoader } from "../res/CCMResLoader";
 import CCMUIView, { CCMUIAniName, CCMUILayerID } from "./CCMUIView";
 
@@ -9,7 +10,7 @@ const ASSET_DELAY_RELEASE_TIME = 60; // 资源默认延迟释放时间（单位�
 const UI_UPDATE_INTERVAL = 5;        // UI管理器更新间隔（单位：秒）
 
 // UI附加参数
-export interface CCMIUIARGS {
+export interface CCMIUIArgs {
     aniImmediately?: boolean;   // 开关界面时，动画瞬时完成（即不播动画）
     openFromUIID?: number;      // 打开界面时，指定从哪个界面打开
 }
@@ -17,11 +18,11 @@ export interface CCMIUIARGS {
 // UI信息
 export interface CCMIUIInfo {
     uiId: number;                           // UI ID
-    uiArgs: CCMIUIARGS | null;              // ui附加参数
+    uiArgs: CCMIUIArgs | null;              // ui附加参数
     uiView: CCMUIView | null;               // UI视图
     layerId: CCMUILayerID;                  // 层级id
     zOrder: number;                         // 层级顺序
-    preventNode?: cc.Node;                  // 阻止节点
+    preventNode?: cc.Node;                  // 防触摸节点
 }
 
 // UI配置
@@ -30,7 +31,8 @@ export interface CCMIUIConf {
     prefabPath: string;           // UI预制体路径
     layerId: CCMUILayerID;        // 层级id
     zOrder: number;               // 层级顺序
-    preventTouch?: boolean;       // 是否阻止触摸事件向下传递
+    preventTouch?: boolean;       // 是否添加防触摸穿透节点
+    preventColor?: cc.Color;      // 防触摸节点颜色
 }
 
 const { ccclass, property } = cc._decorator;
@@ -93,7 +95,7 @@ export default class CCMUIManager {
         if (0 === this._layerRoot.length) {
             let cvs = cc.find("Canvas");
             for (let i = 0; i < CCMUILayerID.Num; i++) {
-                let layerRoot = this._createFullScreenNode(`@Layer${i}`);
+                let layerRoot = this._createFullScreenNode(`#Layer${i}`);
                 cvs.addChild(layerRoot, i);
 
                 this._layerRoot.push(layerRoot);
@@ -105,9 +107,15 @@ export default class CCMUIManager {
      * 添加防触摸层
      * @param layerId 层级id
      * @param zOrder 屏蔽层的层级
+     * @param color 防触摸节点颜色
      */
-    private _preventTouch(layerId: CCMUILayerID, zOrder: number) {
-        let node = this._createFullScreenNode(`@preventTouch_${layerId}_${zOrder}`);
+    private _preventTouch(layerId: CCMUILayerID, zOrder: number, color?: cc.Color) {
+        let node = cc.instantiate(DefaultKeeper.inst.preventPrefab);
+        node.name = `preventTouch_${layerId}_${zOrder}`;
+        if (color) {
+            node.color = new cc.Color(color.r, color.g, color.b);
+            node.opacity = color.a;
+        }
         let layer = this._layerRoot[layerId];
         layer.addChild(node, zOrder);
 
@@ -163,7 +171,7 @@ export default class CCMUIManager {
      * @param completeCallback 加载完成回调
      * @param uiArgs 界面初始化参数
      */
-    private _getOrCreateUI(uiId: number, progressCallback: ProgressCallback | null, completeCallback: (uiView: CCMUIView | null) => void, uiArgs: CCMIUIARGS | null): void {
+    private _getOrCreateUI(uiId: number, progressCallback: ProgressCallback | null, completeCallback: (uiView: CCMUIView | null) => void, uiArgs: CCMIUIArgs | null): void {
         // 找到UI配置
         let uiConf = this._uiConf[uiId];
         let uiPath = uiConf.prefabPath;
@@ -208,7 +216,7 @@ export default class CCMUIManager {
         });
     }
 
-    public open(uiId: number, uiArgs: CCMIUIARGS | null = null, progressCallback: ProgressCallback | null = null): void {
+    public open(uiId: number, uiArgs: CCMIUIArgs | null = null, progressCallback: ProgressCallback | null = null): void {
         let uiConf = this._uiConf[uiId];
         if (!uiConf) {
             console.log(`open ${uiId} failed! not configured`);
@@ -236,7 +244,7 @@ export default class CCMUIManager {
 
         if (uiConf.preventTouch) {
             // 添加防触摸层
-            uiInfo.preventNode = this._preventTouch(uiConf.layerId, uiConf.zOrder);
+            uiInfo.preventNode = this._preventTouch(uiConf.layerId, uiConf.zOrder, uiConf.preventColor);
         }
 
         this._getOrCreateUI(uiId, progressCallback, (uiView: CCMUIView | null) => {
@@ -267,7 +275,7 @@ export default class CCMUIManager {
      * @param uiInfo 界面栈对应的信息结构
      * @param uiArgs 界面初始化参数
      */
-    private _onUIOpen(uiId: number, uiView: CCMUIView, uiInfo: CCMIUIInfo, uiArgs: CCMIUIARGS | null) {
+    private _onUIOpen(uiId: number, uiView: CCMUIView, uiInfo: CCMIUIInfo, uiArgs: CCMIUIArgs | null) {
         if (!uiView) return;
 
         uiInfo.uiView = uiView;
@@ -286,7 +294,7 @@ export default class CCMUIManager {
     }
 
     // 关闭指定界面
-    public close(uiOrId: CCMUIView | number, uiArgs: CCMIUIARGS | null, noCache: boolean = false) {
+    public close(uiOrId: CCMUIView | number, uiArgs: CCMIUIArgs | null, noCache: boolean = false) {
         let uiIndex = this.getUIIndex(uiOrId);
         if (uiIndex < 0) {
             if ('number' == typeof uiOrId) {

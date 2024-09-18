@@ -6,26 +6,28 @@ import { resMgr } from "../base/res/CCMResManager";
 import { uiMgr } from "../base/ui/CCMUIManager";
 import { UIConfig } from "../config/UIConfig";
 
-export default class GameManager {
+const { ccclass, property } = cc._decorator;
+
+@ccclass
+export default class GameManager extends cc.Component {
 
     private static _instance: GameManager;
-    private constructor() { }
-    public static get inst(): GameManager {
-        if (!GameManager._instance) {
-            GameManager._instance = new GameManager();
-        }
-        return GameManager._instance;
+    public static get inst(): GameManager { return GameManager._instance; }
+
+    onLoad() {
+        if (GameManager._instance) return;
+        GameManager._instance = this;
+        this._init();
     }
 
-    public init() {
+    private _init() {
+        cc.game.addPersistRootNode(this.node);
         uiMgr.initUIConf(UIConfig);
         uiMgr.init();
     }
 
-    public update(dt: number) {
+    update(dt: number) {
         uiMgr.update(dt);
         resMgr.update(dt);
     }
 }
-
-export const gameMgr = GameManager.inst;
