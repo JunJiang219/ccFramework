@@ -8,7 +8,8 @@ import { CCMResKeeper } from "../res/CCMResKeeper";
 export enum CCMUILayerID {
     Game,           // 游戏界面层级
     Popup,          // 弹窗层级
-    Notice,         // 提示层级
+    Dialog,         // 对话框层级
+    Toast,          // 提示层级
     Loading,        // 加载层级
     Top,            // 置顶层级
     Num,            // 层级数量
