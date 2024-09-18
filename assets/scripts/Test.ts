@@ -42,7 +42,7 @@ export default class Test extends cc.Component {
 
     closeUI(event: cc.Event.EventTouch, customData: string) {
         let uiId = parseInt(customData);
-        uiMgr.close(uiId);
+        uiMgr.close(uiId, null);
     }
 
     releaseAll() {

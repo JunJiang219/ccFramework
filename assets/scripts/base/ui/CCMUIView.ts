@@ -4,13 +4,6 @@
 
 import { CCMResKeeper } from "../res/CCMResKeeper";
 
-// 界面展示类型
-export enum CCMUIShowType {
-    UISingle,       // 单界面显示，显示时会隐藏其他低层级界面（独立界面除外），性能较好
-    UIAddition,     // 叠加显示，不影响其他界面，性能较差
-    UIIndependent,  // 独立显示，不影响其他界面，也不被其他界面影响，少用
-}
-
 // 界面层级id
 export enum CCMUILayerID {
     Game,           // 游戏界面层级
@@ -42,10 +35,6 @@ export default class CCMUIView extends CCMResKeeper {
     @property({ type: cc.Integer })
     cacheTime: number = UI_CACHE_TIME;
 
-    // 界面展示类型
-    @property({ type: cc.Enum(CCMUIShowType) })
-    showType: CCMUIShowType = CCMUIShowType.UISingle;
-
     private static _instCnt: number = 0; // 界面实例计数器
 
     private _uiId: number = 0; // 界面id
@@ -75,11 +64,19 @@ export default class CCMUIView extends CCMResKeeper {
      */
     public onOpen(fromUIID: number, ...args: any[]): void { }
 
-    // 界面打开动画
-    public execOpenAni(finishCb: (...args: any[]) => void) { finishCb(); }
+    /**
+     * 界面打开动画
+     * @param finishCb 动画结束回调
+     * @param aniImmediately 动画是否立即完成
+     */
+    public execOpenAni(finishCb: (...args: any[]) => void, aniImmediately?: boolean) { finishCb(); }
 
-    // 界面关闭动画
-    public execCloseAni(finishCb: (...args: any[]) => void) { finishCb(); }
+    /**
+     * 界面关闭动画
+     * @param finishCb 动画结束回调
+     * @param aniImmediately 动画是否立即完成
+     */
+    public execCloseAni(finishCb: (...args: any[]) => void, aniImmediately?: boolean) { finishCb(); }
 
     /**
      * 当界面被关闭时回调，每次调用Close时回调
