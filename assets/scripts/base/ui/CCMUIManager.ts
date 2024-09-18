@@ -35,9 +35,6 @@ export interface CCMIUIConf {
     preventColor?: cc.Color;      // 防触摸节点颜色
 }
 
-const { ccclass, property } = cc._decorator;
-
-@ccclass
 export default class CCMUIManager {
 
     private static _instance: CCMUIManager = null;
