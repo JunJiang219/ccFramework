@@ -13,3 +13,5 @@ export default class CCMTipsManager {
         return CCMTipsManager._instance;
     }
 }
+
+export const tipsMgr = CCMTipsManager.inst;
