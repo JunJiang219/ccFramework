@@ -85,6 +85,7 @@ export default class CCMUIManager {
         widget.bottom = 0;
         widget.left = 0;
         widget.right = 0;
+        widget.target = cc.find("Canvas");
         widget.alignMode = cc.Widget.AlignMode.ON_WINDOW_RESIZE;
 
         return node;
@@ -116,6 +117,9 @@ export default class CCMUIManager {
             node.color = new cc.Color(color.r, color.g, color.b);
             node.opacity = color.a;
         }
+
+        let widget = node.getComponent(cc.Widget);
+        widget.target = cc.find("Canvas");
         let layer = this._layerRoot[layerId];
         layer.addChild(node, zOrder);
 
@@ -283,6 +287,21 @@ export default class CCMUIManager {
         uiView.node.zIndex = uiInfo.zOrder;
         uiView.node.parent = this._layerRoot[uiInfo.layerId];
         uiView.node.active = true;
+
+        // 快速关闭界面的设置，绑定界面中的 @background，实现快速关闭
+        if (uiView.quickClose) {
+            let backGround = uiView.node.getChildByName('@background');
+            if (!backGround) {
+                backGround = this._createFullScreenNode('@background');
+                uiView.node.addChild(backGround, -1);
+            }
+            backGround.targetOff(cc.Node.EventType.TOUCH_END);
+            backGround.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventCustom) => {
+                event.stopPropagation();
+                if (uiView.isOpening || uiView.isClosing) return;   // 正在播放动画，不响应
+                this.close(uiView, null);
+            }, backGround);
+        }
 
         // 从哪个界面打开的
         let fromUIID: number = -1 || uiArgs?.openFromUIID;
