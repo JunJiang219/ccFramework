@@ -4,6 +4,7 @@
 
 import DefaultKeeper from "../../manager/DefaultKeeper";
 import { ProgressCallback, resLoader } from "../res/CCMResLoader";
+import { ccmLog } from "../utils/CCMLog";
 import CCMUIAnimation, { CCMUIAniName } from "./CCMUIAnimation";
 import CCMUIView, { CCMUILayerID } from "./CCMUIView";
 
@@ -184,7 +185,7 @@ export default class CCMUIManager {
         let uiConf = this._uiConf[uiId];
         let uiPath = uiConf.prefabPath;
         if (null == uiPath) {
-            console.log(`getOrCreateUI ${uiId} failed, prefab conf not found!`);
+            ccmLog.log(`getOrCreateUI ${uiId} failed, prefab conf not found!`);
             completeCallback(null);
             return;
         }
@@ -193,7 +194,7 @@ export default class CCMUIManager {
         resLoader.load(uiConf.bundleName || "resources", uiPath, progressCallback, (err: Error, prefab: any) => {
             if (err) {
                 // 加载报错
-                console.log(`getOrCreateUI loadRes ${uiId} failed, path: ${uiPath}, error: ${err}`);
+                ccmLog.log(`getOrCreateUI loadRes ${uiId} failed, path: ${uiPath}, error: ${err}`);
                 completeCallback(null);
                 return;
             }
@@ -201,7 +202,7 @@ export default class CCMUIManager {
             // 检查实例化错误
             let uiNode: cc.Node = cc.instantiate(prefab);
             if (null == uiNode) {
-                console.log(`getOrCreateUI instantiate ${uiId} failed, path: ${uiPath}`);
+                ccmLog.log(`getOrCreateUI instantiate ${uiId} failed, path: ${uiPath}`);
                 completeCallback(null);
                 return;
             }
@@ -209,7 +210,7 @@ export default class CCMUIManager {
             // 检查组件获取错误
             uiView = uiNode.getComponent(CCMUIView);
             if (!uiView) {
-                console.log(`getOrCreateUI getComponent ${uiId} failed, path: ${uiPath}`);
+                ccmLog.log(`getOrCreateUI getComponent ${uiId} failed, path: ${uiPath}`);
                 uiNode.destroy();
                 completeCallback(null);
                 return;
@@ -227,7 +228,7 @@ export default class CCMUIManager {
     public open(uiId: number, uiArgs: CCMIUIArgs | null = null, progressCallback: ProgressCallback | null = null, preLoadProgressCb: ProgressCallback | null = null): void {
         let uiConf = this._uiConf[uiId];
         if (!uiConf) {
-            console.log(`open ${uiId} failed! not configured`);
+            ccmLog.log(`open ${uiId} failed! not configured`);
             return;
         }
 
@@ -257,7 +258,7 @@ export default class CCMUIManager {
 
         this._getOrCreateUI(uiId, progressCallback, preLoadProgressCb, (uiView: CCMUIView | null) => {
             if (uiInfo.isClose || null == uiView) {
-                console.log(`getOrCreateUI ${uiId} failed!
+                ccmLog.log(`getOrCreateUI ${uiId} failed!
                     close state : ${uiInfo.isClose} , uiView : ${uiView}`);
 
                 let uiIndex = this.getUIIndex(uiId);
@@ -323,9 +324,9 @@ export default class CCMUIManager {
         let uiIndex = this.getUIIndex(uiOrId);
         if (uiIndex < 0) {
             if ('number' == typeof uiOrId) {
-                console.log(`close ${uiOrId} failed! not found`);
+                ccmLog.log(`close ${uiOrId} failed! not found`);
             } else {
-                console.log(`close ${uiOrId.uiId} failed! not found`);
+                ccmLog.log(`close ${uiOrId.uiId} failed! not found`);
             }
             return false;
         }
@@ -439,9 +440,9 @@ export default class CCMUIManager {
         let uiIndex = this.getUIIndex(uiOrId);
         if (uiIndex < 0) {
             if ('number' == typeof uiOrId) {
-                console.log(`hide ${uiOrId} failed! not found`);
+                ccmLog.log(`hide ${uiOrId} failed! not found`);
             } else {
-                console.log(`hide ${uiOrId.uiId} failed! not found`);
+                ccmLog.log(`hide ${uiOrId.uiId} failed! not found`);
             }
             return;
         }
@@ -462,9 +463,9 @@ export default class CCMUIManager {
         let uiIndex = this.getUIIndex(uiOrId);
         if (uiIndex < 0) {
             if ('number' == typeof uiOrId) {
-                console.log(`show ${uiOrId} failed! not found`);
+                ccmLog.log(`show ${uiOrId} failed! not found`);
             } else {
-                console.log(`show ${uiOrId.uiId} failed! not found`);
+                ccmLog.log(`show ${uiOrId.uiId} failed! not found`);
             }
             return;
         }

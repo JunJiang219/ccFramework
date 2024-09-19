@@ -6,6 +6,7 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 import { uiMgr } from "./base/ui/CCMUIManager";
+import { ccmLog } from "./base/utils/CCMLog";
 import { UIID } from "./config/UIConfig";
 
 const { ccclass, property } = cc._decorator;
@@ -22,7 +23,7 @@ export default class Test extends cc.Component {
     }
 
     dump() {
-        console.log(cc.assetManager.assets);
+        ccmLog.log(cc.assetManager.assets);
     }
 
     // update (dt) {}
@@ -32,7 +33,7 @@ export default class Test extends cc.Component {
 
         // cc.resources.load("prefabs/root1", (err, res) => {
         //     if (err) {
-        //         console.error(err);
+        //         ccmLog.error(err);
         //         return;
         //     }
         //     let node = cc.instantiate(res);

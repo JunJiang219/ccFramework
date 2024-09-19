@@ -7,6 +7,7 @@
 import { CCMResUtil } from "./CCMResUtil";
 
 import Asset = cc.Asset;
+import { ccmLog } from "../utils/CCMLog";
 export type FilterCallback = (asset: Asset) => boolean;
 
 export class CCMResLeakChecker {
@@ -107,7 +108,7 @@ export class CCMResLeakChecker {
             let traceMap: Map<string, number> | undefined = element.traceMap;
             if (traceMap) {
                 traceMap.forEach((key, value) => {
-                    console.log(`${key} : ${value} `);
+                    ccmLog.log(`${key} : ${value} `);
                 });
             }
         })

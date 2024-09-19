@@ -21,7 +21,7 @@ export default class GameManager extends cc.Component {
     }
 
     private _init() {
-        cc.game.addPersistRootNode(this.node);
+        cc.game.addPersistRootNode(this.node);  // 设为常驻节点
         uiMgr.initUIConf(UIConfig);
         uiMgr.init();
     }
