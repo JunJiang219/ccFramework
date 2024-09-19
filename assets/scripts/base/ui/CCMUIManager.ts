@@ -24,6 +24,7 @@ export interface CCMIUIInfo {
     layerId: CCMUILayerID;                  // 层级id
     zOrder: number;                         // 层级顺序
     preventNode?: cc.Node;                  // 防触摸节点
+    isClose?: boolean;                      // 是否关闭
 }
 
 // UI配置
@@ -254,8 +255,9 @@ export default class CCMUIManager {
         }
 
         this._getOrCreateUI(uiId, progressCallback, (uiView: CCMUIView | null) => {
-            if (!uiView) {
-                console.log(`getOrCreateUI ${uiId} failed!`);
+            if (uiInfo.isClose || null == uiView) {
+                console.log(`getOrCreateUI ${uiId} failed!
+                    close state : ${uiInfo.isClose} , uiView : ${uiView}`);
 
                 let uiIndex = this.getUIIndex(uiId);
                 if (uiIndex >= 0) {
@@ -266,6 +268,8 @@ export default class CCMUIManager {
                     uiInfo.preventNode.destroy();
                     uiInfo.preventNode = null;
                 }
+
+                uiView?.node.destroy();
 
                 return;
             }
@@ -332,6 +336,7 @@ export default class CCMUIManager {
         let aniComponent = uiView.node.getComponent(CCMUIAnimation);
         if (aniComponent && aniComponent.curAniName != CCMUIAniName.UINone) return false;   // 正在播放动画，不响应
 
+        uiInfo.isClose = true;
         if (uiInfo.preventNode) {
             uiInfo.preventNode.destroy();
             uiInfo.preventNode = null;
@@ -348,18 +353,18 @@ export default class CCMUIManager {
             }
 
             if (noCache) {
-                // 立即释放ui、asset
+                // 销毁ui，释放资源
                 uiView.cachedTS = 0;
                 uiView.releaseAssets(true);
                 uiView.node.destroy();
             } else {
                 if (uiView.cacheTime > 0) {
-                    // 缓存ui、asset
+                    // 缓存ui
                     this._uiCache.add(uiView);
                     uiView.cachedTS = Math.floor(Date.now() / 1000);
                     uiView.node.removeFromParent();
                 } else {
-                    // 立即释放ui、asset可能延迟释放
+                    // 销毁ui
                     uiView.cachedTS = 0;
                     uiView.node.destroy();
                 }
@@ -376,39 +381,41 @@ export default class CCMUIManager {
         let newUIStack: CCMIUIInfo[] = [];
         if (noCache) {
             for (const uiInfo of this._uiStack) {
-                if (cc.isValid(uiInfo.uiView)) {
-                    if (ignoreUIIds.indexOf(uiInfo.uiId) < 0) {
-                        if (uiInfo.preventNode) {
-                            uiInfo.preventNode.destroy();
-                            uiInfo.preventNode = null;
-                        }
+                if (ignoreUIIds.indexOf(uiInfo.uiId) < 0) {
+                    uiInfo.isClose = true;
+                    if (uiInfo.preventNode) {
+                        uiInfo.preventNode.destroy();
+                        uiInfo.preventNode = null;
+                    }
 
-                        // 不在忽略列表中, 立即释放ui、asset
+                    if (uiInfo.uiView) {
+                        // 销毁ui，释放资源
                         uiInfo.uiView.onClose();
                         uiInfo.uiView.releaseAssets(true);
                         uiInfo.uiView.node.destroy();
-                    } else {
-                        // 在忽略列表中, 放入新列表
-                        newUIStack.push(uiInfo);
                     }
+                } else {
+                    // 在忽略列表中, 放入新列表
+                    newUIStack.push(uiInfo);
                 }
             }
         } else {
             for (const uiInfo of this._uiStack) {
-                if (cc.isValid(uiInfo.uiView)) {
-                    if (ignoreUIIds.indexOf(uiInfo.uiId) < 0) {
-                        if (uiInfo.preventNode) {
-                            uiInfo.preventNode.destroy();
-                            uiInfo.preventNode = null;
-                        }
+                if (ignoreUIIds.indexOf(uiInfo.uiId) < 0) {
+                    uiInfo.isClose = true;
+                    if (uiInfo.preventNode) {
+                        uiInfo.preventNode.destroy();
+                        uiInfo.preventNode = null;
+                    }
 
-                        // 不在忽略列表中, 立即销毁ui
+                    if (uiInfo.uiView) {
+                        // 销毁ui
                         uiInfo.uiView.onClose();
                         uiInfo.uiView.node.destroy();
-                    } else {
-                        // 在忽略列表中, 放入新列表
-                        newUIStack.push(uiInfo);
                     }
+                } else {
+                    // 在忽略列表中, 放入新列表
+                    newUIStack.push(uiInfo);
                 }
             }
         }
