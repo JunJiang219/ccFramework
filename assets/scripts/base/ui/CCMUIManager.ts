@@ -144,7 +144,7 @@ export default class CCMUIManager {
      * @param aniName 动画名
      * @param aniOverCallback 动画播放完成回调
      */
-    private _autoExecAnimation(uiView: CCMUIView, aniName: string, aniOverCallback: (...args: any[]) => void, aniImmediately?: boolean) {
+    private _autoExecAnimation(uiView: CCMUIView, aniName: string, aniOverCallback: () => void, aniImmediately?: boolean) {
         let aniComponent = uiView.node.getComponent(CCMUIAnimation);
         if (aniComponent) {
             switch (aniName) {
@@ -164,21 +164,22 @@ export default class CCMUIManager {
 
     /**
      * 自动检测资源预加载组件，如果存在则加载完成后调用completeCallback，否则直接调用
+     * @param preLoadProgressCb 预加载进度回调
      * @param completeCallback 资源加载完成回调
      */
-    private _autoLoadRes(uiView: CCMUIView, completeCallback: () => void) {
-        // 暂时先省略
-        completeCallback();
+    private _autoLoadRes(uiView: CCMUIView, preLoadProgressCb: ProgressCallback | null, completeCallback: () => void) {
+        uiView.preLoadRes(preLoadProgressCb, completeCallback);
     }
 
     /**
      * 异步加载一个UI的prefab
      * @param uiId 界面id
      * @param progressCallback 加载进度回调
+     * @param preLoadProgressCb 预加载进度回调
      * @param completeCallback 加载完成回调
      * @param uiArgs 界面初始化参数
      */
-    private _getOrCreateUI(uiId: number, progressCallback: ProgressCallback | null, completeCallback: (uiView: CCMUIView | null) => void, uiArgs: CCMIUIArgs | null): void {
+    private _getOrCreateUI(uiId: number, progressCallback: ProgressCallback | null, preLoadProgressCb: ProgressCallback | null, completeCallback: (uiView: CCMUIView | null) => void, uiArgs: CCMIUIArgs | null): void {
         // 找到UI配置
         let uiConf = this._uiConf[uiId];
         let uiPath = uiConf.prefabPath;
@@ -215,7 +216,7 @@ export default class CCMUIManager {
             }
 
             // 异步加载UI预加载的资源
-            this._autoLoadRes(uiView, () => {
+            this._autoLoadRes(uiView, preLoadProgressCb, () => {
                 uiView.init(uiId, uiArgs);
                 uiView.cacheAsset(prefab);
                 completeCallback(uiView);
@@ -223,7 +224,7 @@ export default class CCMUIManager {
         });
     }
 
-    public open(uiId: number, uiArgs: CCMIUIArgs | null = null, progressCallback: ProgressCallback | null = null): void {
+    public open(uiId: number, uiArgs: CCMIUIArgs | null = null, progressCallback: ProgressCallback | null = null, preLoadProgressCb: ProgressCallback | null = null): void {
         let uiConf = this._uiConf[uiId];
         if (!uiConf) {
             console.log(`open ${uiId} failed! not configured`);
@@ -254,7 +255,7 @@ export default class CCMUIManager {
             uiInfo.preventNode = this._preventTouch(uiConf.layerId, uiConf.zOrder, uiConf.preventColor);
         }
 
-        this._getOrCreateUI(uiId, progressCallback, (uiView: CCMUIView | null) => {
+        this._getOrCreateUI(uiId, progressCallback, preLoadProgressCb, (uiView: CCMUIView | null) => {
             if (uiInfo.isClose || null == uiView) {
                 console.log(`getOrCreateUI ${uiId} failed!
                     close state : ${uiInfo.isClose} , uiView : ${uiView}`);

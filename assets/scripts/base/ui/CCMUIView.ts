@@ -3,6 +3,7 @@
  */
 
 import { CCMResKeeper } from "../res/CCMResKeeper";
+import { ProgressCallback } from "../res/CCMResLoader";
 
 // 界面层级id
 export enum CCMUILayerID {
@@ -39,6 +40,13 @@ export default class CCMUIView extends CCMResKeeper {
     public get instId(): number { return this._instId; }
 
     public cachedTS: number = 0;        // 开始缓存的时间戳
+
+    /**
+     * 预加载资源
+     * @param preLoadProgressCb 预加载进度回调
+     * @param completeCallback 预加载完成回调
+     */
+    public preLoadRes(preLoadProgressCb: ProgressCallback | null, completeCallback: () => void): void { completeCallback(); }
 
     /**
      * 当界面被创建时回调，生命周期内只调用一次(子类复写必须前置调用该父类逻辑)
