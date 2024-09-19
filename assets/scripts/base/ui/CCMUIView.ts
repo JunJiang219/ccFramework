@@ -15,12 +15,6 @@ export enum CCMUILayerID {
     Num,            // 层级数量
 }
 
-// 界面动画名称
-export enum CCMUIAniName {
-    UIOpen = "uiOpen",          // 界面打开动画
-    UIClose = "uiClose",        // 界面关闭动画
-}
-
 const UI_CACHE_TIME = 180; // 界面默认缓存时间(单位：秒)
 
 const { ccclass, property } = cc._decorator;
@@ -44,8 +38,6 @@ export default class CCMUIView extends CCMResKeeper {
     private _instId: number = 0; // 界面实例唯一标识符
     public get instId(): number { return this._instId; }
 
-    public isOpening: boolean = false;  // 是否正在打开
-    public isClosing: boolean = false;  // 是否正在关闭
     public cachedTS: number = 0;        // 开始缓存的时间戳
 
     /**
@@ -64,20 +56,6 @@ export default class CCMUIView extends CCMResKeeper {
      * @param args 可变参数
      */
     public onOpen(fromUIID: number, ...args: any[]): void { }
-
-    /**
-     * 界面打开动画
-     * @param finishCb 动画结束回调
-     * @param aniImmediately 动画是否立即完成
-     */
-    public execOpenAni(finishCb: (...args: any[]) => void, aniImmediately?: boolean) { finishCb(); }
-
-    /**
-     * 界面关闭动画
-     * @param finishCb 动画结束回调
-     * @param aniImmediately 动画是否立即完成
-     */
-    public execCloseAni(finishCb: (...args: any[]) => void, aniImmediately?: boolean) { finishCb(); }
 
     /**
      * 当界面被关闭时回调，每次调用Close时回调
