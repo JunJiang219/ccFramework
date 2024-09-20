@@ -18,9 +18,7 @@ export default class Test extends cc.Component {
 
     // onLoad () {}
 
-    start() {
-
-    }
+    start() { }
 
     dump() {
         ccmLog.log(cc.assetManager.assets);
@@ -44,6 +42,12 @@ export default class Test extends cc.Component {
     closeUI(event: cc.Event.EventTouch, customData: string) {
         let uiId = parseInt(customData);
         uiMgr.close(uiId, null);
+    }
+
+    test() {
+        uiMgr.open(UIID.ROOT1);
+        uiMgr.open(UIID.ROOT2);
+        uiMgr.closeAll();
     }
 
     releaseAll() {

@@ -195,8 +195,8 @@
       "__id__": 1
     },
     "_enabled": true,
-    "quickClose": true,
-    "cacheTime": 5,
+    "quickClose": false,
+    "cacheTime": 10,
     "_id": ""
   },
   {

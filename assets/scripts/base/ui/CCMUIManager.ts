@@ -184,7 +184,7 @@ export default class CCMUIManager {
         // 找到UI配置
         let uiConf = this._uiConf[uiId];
         let uiPath = uiConf.prefabPath;
-        if (null == uiPath) {
+        if (!uiPath) {
             ccmLog.log(`getOrCreateUI ${uiId} failed, prefab conf not found!`);
             completeCallback(null);
             return;
@@ -201,7 +201,7 @@ export default class CCMUIManager {
 
             // 检查实例化错误
             let uiNode: cc.Node = cc.instantiate(prefab);
-            if (null == uiNode) {
+            if (!uiNode) {
                 ccmLog.log(`getOrCreateUI instantiate ${uiId} failed, path: ${uiPath}`);
                 completeCallback(null);
                 return;
@@ -257,9 +257,8 @@ export default class CCMUIManager {
         }
 
         this._getOrCreateUI(uiId, progressCallback, preLoadProgressCb, (uiView: CCMUIView | null) => {
-            if (uiInfo.isClose || null == uiView) {
-                ccmLog.log(`getOrCreateUI ${uiId} failed!
-                    close state : ${uiInfo.isClose} , uiView : ${uiView}`);
+            if (uiInfo.isClose || !uiView) {
+                ccmLog.log(`getOrCreateUI ${uiId} failed! close state : ${uiInfo.isClose} , uiView : ${uiView}`);
 
                 let uiIndex = this.getUIIndex(uiId);
                 if (uiIndex >= 0) {

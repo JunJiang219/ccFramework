@@ -2,6 +2,8 @@
  * ui动画组件
  */
 
+import { ccmLog } from "../utils/CCMLog";
+
 // 界面动画名称
 export enum CCMUIAniName {
     UINone = "uiNone",          // 无动画
@@ -14,7 +16,10 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class CCMUIAnimation extends cc.Component {
 
-    private _curAniName: string = CCMUIAniName.UINone;    // 当前动画名称
+    @property(cc.Node)
+    aniNode: cc.Node = null;     // 动画节点
+
+    protected _curAniName: string = CCMUIAniName.UINone;    // 当前动画名称
     public get curAniName() { return this._curAniName; }
 
     /**
@@ -23,17 +28,18 @@ export default class CCMUIAnimation extends cc.Component {
      * @param aniImmediately 动画是否立即完成
      */
     public execAni_UIOpen(finishCb: () => void, aniImmediately?: boolean) {
-        cc.Tween.stopAllByTarget(this.node);
+        let defaultAniNode = this.aniNode || this.node;
+        cc.Tween.stopAllByTarget(defaultAniNode);
         if (aniImmediately) {
-            this.node.scale = 1;
-            this.node.active = true;
+            defaultAniNode.scale = 1;
+            defaultAniNode.active = true;
             this._curAniName = CCMUIAniName.UINone;
             finishCb();
         } else {
-            this.node.scale = 0;
-            this.node.active = true;
+            defaultAniNode.scale = 0;
+            defaultAniNode.active = true;
             this._curAniName = CCMUIAniName.UIOpen;
-            cc.tween(this.node)
+            cc.tween(defaultAniNode)
                 .to(0.5, { scale: 1 }, { easing: "bounceOut" })
                 .call(() => {
                     this._curAniName = CCMUIAniName.UINone;
@@ -49,17 +55,18 @@ export default class CCMUIAnimation extends cc.Component {
      * @param aniImmediately 动画是否立即完成
      */
     public execAni_UIClose(finishCb: () => void, aniImmediately?: boolean) {
-        cc.Tween.stopAllByTarget(this.node);
+        let defaultAniNode = this.aniNode || this.node;
+        cc.Tween.stopAllByTarget(defaultAniNode);
         if (aniImmediately) {
-            this.node.scale = 0;
-            this.node.active = true;
+            defaultAniNode.scale = 0;
+            defaultAniNode.active = true;
             this._curAniName = CCMUIAniName.UINone;
             finishCb();
         } else {
-            this.node.scale = 1;
-            this.node.active = true;
+            defaultAniNode.scale = 1;
+            defaultAniNode.active = true;
             this._curAniName = CCMUIAniName.UIClose;
-            cc.tween(this.node)
+            cc.tween(defaultAniNode)
                 .to(0.5, { scale: 0 }, { easing: "bounceIn" })
                 .call(() => {
                     this._curAniName = CCMUIAniName.UINone;
