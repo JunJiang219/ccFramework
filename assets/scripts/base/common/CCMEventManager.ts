@@ -100,7 +100,11 @@ export class CCMEventManager {
             }
             for (let i = 0, len = callbackList.length; i < len; i++) {
                 let iterator = callbackList[i];
-                iterator.callBack.call(iterator.target, eventName, eventData);
+                if (iterator.target) {
+                    iterator.callBack.call(iterator.target, eventName, eventData);
+                } else {
+                    iterator.callBack(eventName, eventData);
+                }
             }
         }
         ccmLog.log(`==================== raiseEvent ${eventName} end`);

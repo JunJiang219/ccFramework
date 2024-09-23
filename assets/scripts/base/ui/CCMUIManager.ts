@@ -15,6 +15,7 @@ const UI_UPDATE_INTERVAL = 5;        // UI管理器更新间隔（单位：秒�
 export interface CCMIUIArgs {
     aniImmediately?: boolean;   // 开关界面时，动画瞬时完成（即不播动画）
     openFromUIID?: number;      // 打开界面时，指定从哪个界面打开
+    userOptions?: any;          // 用户自定义参数
 }
 
 // UI信息
@@ -74,7 +75,8 @@ export default class CCMUIManager {
     private _createFullScreenNode(nodeName?: string): cc.Node {
         let node = new cc.Node()
         if (nodeName) node.name = nodeName;
-        node.setContentSize(cc.winSize);
+        let cvs = cc.find("Canvas");
+        node.setContentSize(cvs.width, cvs.height);
 
         let widget = node.addComponent(cc.Widget);
         widget.isAlignTop = true;
@@ -85,7 +87,7 @@ export default class CCMUIManager {
         widget.bottom = 0;
         widget.left = 0;
         widget.right = 0;
-        widget.target = cc.find("Canvas");
+        widget.target = cvs;
         widget.alignMode = cc.Widget.AlignMode.ON_WINDOW_RESIZE;
 
         return node;
@@ -96,7 +98,7 @@ export default class CCMUIManager {
         if (0 === this._layerRoot.length) {
             let cvs = cc.find("Canvas");
             for (let i = 0; i < CCMUILayerID.Num; i++) {
-                let layerRoot = this._createFullScreenNode(`#Layer${i}`);
+                let layerRoot = this._createFullScreenNode(`#Layer${i + 1}`);
                 cvs.addChild(layerRoot, i);
 
                 this._layerRoot.push(layerRoot);
@@ -112,7 +114,7 @@ export default class CCMUIManager {
      */
     private _preventTouch(layerId: CCMUILayerID, zOrder: number, color?: cc.Color) {
         let node = cc.instantiate(DefaultKeeper.inst.preventPrefab);
-        node.name = `preventTouch_${layerId}_${zOrder}`;
+        node.name = `@preventTouch_${layerId}_${zOrder}`;
         if (color) {
             node.color = new cc.Color(color.r, color.g, color.b);
             node.opacity = color.a;

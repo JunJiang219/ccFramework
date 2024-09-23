@@ -5,6 +5,8 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import { CCMIDialogOptions } from "./base/ui/CCMDialogView";
+import { tipsMgr } from "./base/ui/CCMTipsManager";
 import { uiMgr } from "./base/ui/CCMUIManager";
 import { ccmLog } from "./base/utils/CCMLog";
 import { UIID } from "./config/UIConfig";
@@ -17,6 +19,11 @@ export default class Test extends cc.Component {
     // LIFE-CYCLE CALLBACKS:
 
     // onLoad () {}
+
+    private _cnt: number = 0;
+
+    private _res1: cc.Prefab = null;
+    private _res2: cc.Prefab = null;
 
     start() { }
 
@@ -42,6 +49,17 @@ export default class Test extends cc.Component {
     closeUI(event: cc.Event.EventTouch, customData: string) {
         let uiId = parseInt(customData);
         uiMgr.close(uiId, null);
+    }
+
+    openDialog(event: cc.Event.EventTouch, customData: string) {
+        let options: CCMIDialogOptions = {
+            text: `This is dialog ${++this._cnt}`,
+        };
+        tipsMgr.showDialog(options);
+    }
+
+    closeDialog(event: cc.Event.EventTouch, customData: string) {
+        tipsMgr.closeAllDialogs();
     }
 
     test() {

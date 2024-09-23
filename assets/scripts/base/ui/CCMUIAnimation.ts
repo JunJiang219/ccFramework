@@ -67,7 +67,7 @@ export default class CCMUIAnimation extends cc.Component {
             defaultAniNode.active = true;
             this._curAniName = CCMUIAniName.UIClose;
             cc.tween(defaultAniNode)
-                .to(0.5, { scale: 0 }, { easing: "bounceIn" })
+                .to(0.5, { scale: 0 }, { easing: "elasticIn" })
                 .call(() => {
                     this._curAniName = CCMUIAniName.UINone;
                     finishCb();

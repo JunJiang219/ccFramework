@@ -3,8 +3,9 @@
  */
 
 import { resMgr } from "../base/res/CCMResManager";
+import { tipsMgr } from "../base/ui/CCMTipsManager";
 import { uiMgr } from "../base/ui/CCMUIManager";
-import { UIConfig } from "../config/UIConfig";
+import { DialogConfig, UIConfig } from "../config/UIConfig";
 
 const { ccclass, property } = cc._decorator;
 
@@ -24,10 +25,12 @@ export default class GameManager extends cc.Component {
         cc.game.addPersistRootNode(this.node);  // 设为常驻节点
         uiMgr.initUIConf(UIConfig);
         uiMgr.init();
+        tipsMgr.initDialogConf(DialogConfig);
     }
 
     update(dt: number) {
         uiMgr.update(dt);
+        tipsMgr.update(dt);
         resMgr.update(dt);
     }
 }
