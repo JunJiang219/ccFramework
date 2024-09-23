@@ -1676,7 +1676,7 @@
     },
     "_enabled": true,
     "quickClose": false,
-    "cacheTime": 5,
+    "cacheTime": 0,
     "textLabel": {
       "__id__": 7
     },

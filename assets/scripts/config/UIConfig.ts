@@ -1,4 +1,4 @@
-import { CCMIDialogConf } from "../base/ui/CCMTipsManager";
+import { CCMIDialogConf, CCMIToastConf } from "../base/ui/CCMTipsManager";
 import { CCMIUIConf } from "../base/ui/CCMUIManager";
 import { CCMUILayerID } from "../base/ui/CCMUIView";
 
@@ -8,9 +8,19 @@ export enum DIALOGID {
 }
 
 export const DialogConfig: { [dialogId: number]: CCMIDialogConf } = {
-    [DIALOGID.DEFAULT]: { prefabPath: "prefabs/common/@dialog", preventTouch: false }
+    [DIALOGID.DEFAULT]: { prefabPath: "prefabs/common/@dialog", preventTouch: true }
 }
 /** ------------------------------ Dialog Config ----------------------------- */
+
+/** ------------------------------ Toast Config ----------------------------- */
+export enum TOASTID {
+    DEFAULT,    // 默认的对话框
+}
+
+export const ToastConfig: { [toastId: number]: CCMIToastConf } = {
+    [TOASTID.DEFAULT]: { prefabPath: "prefabs/common/@toast" }
+}
+/** ------------------------------ Toast Config ----------------------------- */
 
 
 /** ------------------------------ UI Config --------------------------------- */

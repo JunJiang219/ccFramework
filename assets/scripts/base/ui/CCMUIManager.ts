@@ -317,6 +317,7 @@ export default class CCMUIManager {
         uiView.onOpen(fromUIID, uiArgs);
         this._autoExecAnimation(uiView, CCMUIAniName.UIOpen, (...args: any[]) => {
             // 动画播放完成回调
+            uiView.onOpenAniOver();
         }, uiArgs?.aniImmediately);
     }
 

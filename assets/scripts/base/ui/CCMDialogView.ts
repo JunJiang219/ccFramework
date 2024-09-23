@@ -5,7 +5,7 @@
 import { CCMResKeeper } from "../res/CCMResKeeper";
 import { tipsMgr } from "./CCMTipsManager";
 
-const DIALOG_CACHE_TIME = 180; // 界面默认缓存时间(单位：秒)
+const DIALOG_CACHE_TIME = 0; // 界面默认缓存时间(单位：秒)
 
 // 模态提示框回调
 export type CCMDialogCallbackTarget = { callback: (...args: any[]) => void, target?: any };
@@ -17,8 +17,8 @@ export interface CCMIDialogOptions {
     cancelText?: string;                        // 取消按钮文字
     okCallback?: CCMDialogCallbackTarget;       // 点击确定按钮回调
     cancelCallback?: CCMDialogCallbackTarget;   // 点击取消按钮回调
-
     aniImmediately?: boolean;                   // 开关界面时，动画瞬时完成（即不播动画）
+
     userOptions?: any;                          // 用户自定义参数
 }
 
@@ -65,10 +65,14 @@ export default class CCMDialogView extends CCMResKeeper {
 
     /**
      * 当界面被打开时回调，每次调用 showDialog 时回调
-     * @param fromDialog 打开该dialog前的dialog实例
      * @param options 可变参数
      */
-    public onOpen(fromDialog: CCMDialogView, options: CCMIDialogOptions): void { }
+    public onOpen(options: CCMIDialogOptions): void { }
+
+    /**
+     * 每次界面Open动画播放完毕时回调
+     */
+    public onOpenAniOver(): void { }
 
     // 点击确定按钮回调
     public okHandler(): void {

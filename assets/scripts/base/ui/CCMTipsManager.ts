@@ -4,20 +4,16 @@
 
 import DefaultKeeper from "../../manager/DefaultKeeper";
 import { resLoader } from "../res/CCMResLoader";
+import { CCMResCacheArgs, CCMResReleaseTiming } from "../res/CCMResManager";
 import { ccmLog } from "../utils/CCMLog";
 import CCMDialogView, { CCMIDialogOptions } from "./CCMDialogView";
-import CCMToastView from "./CCMToastView";
+import CCMToastView, { CCMIToastOptions } from "./CCMToastView";
 import CCMUIAnimation, { CCMUIAniName } from "./CCMUIAnimation";
 import { uiMgr } from "./CCMUIManager";
 import { CCMUILayerID } from "./CCMUIView";
 
+const ASSET_DELAY_RELEASE_TIME = 60; // 资源默认延迟释放时间（单位：秒）
 const CHECK_INTERVAL = 5;   // 提示管理器更新间隔（单位：秒）
-
-// toast参数
-export interface CCMIToastOptions {
-    text: string;
-    duration?: number;
-}
 
 // dialog配置
 export interface CCMIDialogConf {
@@ -29,8 +25,8 @@ export interface CCMIDialogConf {
 
 // dialog信息
 export interface CCMIDialogInfo {
-    dialogId: number;                           // dialog ID
-    dialogOptions: CCMIDialogOptions;           // dialog参数
+    dialogId: number;                           // UI ID
+    dialogOptions: CCMIDialogOptions;           // UI参数
     dialogView: CCMDialogView;                  // UI视图
     zOrder: number;                             // 层级顺序
     preventNode?: cc.Node;                      // 防触摸节点
@@ -41,6 +37,15 @@ export interface CCMIDialogInfo {
 export interface CCMIToastConf {
     bundleName?: string;          // bundle名，不配则取默认值'resources'
     prefabPath: string;           // UI预制体路径
+}
+
+// toast信息
+export interface CCMIToastInfo {
+    toastId: number;                           // UI ID
+    toastOptions: CCMIDialogOptions;           // UI参数
+    toastView: CCMToastView;                  // UI视图
+    zOrder: number;                            // 层级顺序
+    isClose?: boolean;                         // 是否关闭
 }
 
 export default class CCMTipsManager {
@@ -63,9 +68,21 @@ export default class CCMTipsManager {
     // dialog缓存
     private _dialogCache: Set<CCMDialogView> = new Set();
 
+    // toast配置
+    private _toastConf: { [toastId: number]: CCMIToastConf } = {};
+    // toast界面栈
+    private _toastStack: CCMIToastInfo[] = [];
+    // toast缓存
+    private _toastCache: Set<CCMToastView> = new Set();
+
     // 初始化dialog配置
     public initDialogConf(dialogConf: { [dialogId: number]: CCMIDialogConf }) {
         this._dialogConf = dialogConf;
+    }
+
+    // 初始化toast配置
+    public initToastConf(toastConf: { [toastId: number]: CCMIToastConf }) {
+        this._toastConf = toastConf;
     }
 
     // 创建全屏节点
@@ -183,7 +200,11 @@ export default class CCMTipsManager {
             }
 
             dialogView.init(dialogId, options);
-            dialogView.cacheAsset(prefab);
+            let args: CCMResCacheArgs = {
+                releaseTiming: CCMResReleaseTiming.AfterDestroy,
+                keepTime: ASSET_DELAY_RELEASE_TIME,
+            };
+            dialogView.cacheAsset(prefab, args);
             completeCallback(dialogView);
         });
     }
@@ -191,7 +212,7 @@ export default class CCMTipsManager {
     public showDialog(options: CCMIDialogOptions, closeOther: boolean = false, dialogId: number = 0) {
         let dialogConf = this._dialogConf[dialogId];
         if (!dialogConf) {
-            ccmLog.log(`show ${dialogId} failed! not configured`);
+            ccmLog.log(`showDialog ${dialogId} failed! not configured`);
             return;
         }
         if (closeOther) this.closeAllDialogs();
@@ -260,11 +281,10 @@ export default class CCMTipsManager {
             }, backGround);
         }
 
-        // 从哪个界面打开的
-        let fromDialog = this.getTopDialog();
-        dialogView.onOpen(fromDialog, options);
+        dialogView.onOpen(options);
         this._autoExecAnimation(dialogView, CCMUIAniName.UIOpen, () => {
             // 动画播放完成回调
+            dialogView.onOpenAniOver();
         }, options?.aniImmediately);
     }
 
@@ -337,7 +357,165 @@ export default class CCMTipsManager {
                 dialogView.node.destroy();
             }
         });
+
+        this._toastCache.forEach(toastView => {
+            if (cc.isValid(toastView)) {
+                toastView.releaseAssets(true);
+                toastView.node.destroy();
+            }
+        });
+
         this._dialogCache.clear();
+        this._toastCache.clear();
+    }
+
+    private _getOrCreateToast(toastId: number, completeCallback: (toastView: CCMToastView) => void, options: CCMIToastOptions): void {
+        // 找到UI配置
+        let toastConf = this._toastConf[toastId];
+        let toastPath = toastConf.prefabPath;
+        if (!toastPath) {
+            ccmLog.log(`_getOrCreateToast ${toastId} failed, prefab conf not found!`);
+            completeCallback(null);
+            return;
+        }
+
+        let toastView: CCMToastView = null;
+        resLoader.load(toastConf.bundleName || "resources", toastPath, (err: Error, prefab: any) => {
+            if (err) {
+                // 加载报错
+                ccmLog.log(`_getOrCreateToast loadRes ${toastId} failed, path: ${toastPath}, error: ${err}`);
+                completeCallback(null);
+                return;
+            }
+
+            // 检查实例化错误
+            let uiNode: cc.Node = cc.instantiate(prefab);
+            if (!uiNode) {
+                ccmLog.log(`_getOrCreateToast instantiate ${toastId} failed, path: ${toastPath}`);
+                completeCallback(null);
+                return;
+            }
+
+            // 检查组件获取错误
+            toastView = uiNode.getComponent(CCMToastView);
+            if (!toastView) {
+                ccmLog.log(`_getOrCreateToast getComponent ${toastId} failed, path: ${toastPath}`);
+                uiNode.destroy();
+                completeCallback(null);
+                return;
+            }
+
+            toastView.init(toastId, options);
+            let args: CCMResCacheArgs = {
+                releaseTiming: CCMResReleaseTiming.AfterDestroy,
+                keepTime: ASSET_DELAY_RELEASE_TIME,
+            };
+            toastView.cacheAsset(prefab, args);
+            completeCallback(toastView);
+        });
+    }
+
+    public showToast(options: CCMIToastOptions, closeOther: boolean = false, toastId: number = 0) {
+        let toastConf = this._toastConf[toastId];
+        if (!toastConf) {
+            ccmLog.log(`showToast ${toastId} failed! not configured`);
+            return;
+        }
+        if (closeOther) this.closeAllToasts();
+
+        let zOrder = this._toastStack.length + 1;
+        let toastInfo: CCMIToastInfo = {
+            toastId: toastId,
+            toastOptions: options,
+            toastView: null,
+            zOrder: zOrder,
+        };
+        this._toastStack.push(toastInfo);
+
+        this._getOrCreateToast(toastId, (toastView: CCMToastView) => {
+            if (toastInfo.isClose || !toastView) {
+                ccmLog.log(`_getOrCreateToast ${toastId} failed! close state : ${toastInfo.isClose} , toastView : ${toastView}`);
+                toastView?.node.destroy();
+                return;
+            }
+
+            this._onToastOpen(toastId, toastView, toastInfo, options);
+        }, options);
+    }
+
+    private _onToastOpen(toastId: number, toastView: CCMToastView, toastInfo: CCMIToastInfo, options: CCMIToastOptions) {
+        if (!toastView) return;
+
+        toastInfo.toastView = toastView;
+        toastView.node.zIndex = toastInfo.zOrder;
+        toastView.node.parent = uiMgr.getLayerRoot(CCMUILayerID.Toast);
+        toastView.node.active = true;
+
+        toastView.onOpen(options);
+        this._autoExecAnimation(toastView, CCMUIAniName.UIOpen, () => {
+            // 动画播放完成回调
+            toastView.onOpenAniOver();
+        }, options?.aniImmediately);
+    }
+
+    public closeToast(toastView: CCMToastView, options?: CCMIToastOptions, noCache: boolean = false) {
+        let toastIndex = this.getToastIndex(toastView);
+        if (toastIndex < 0) {
+            ccmLog.log(`closeToast ${toastView.toastId} failed! not found`);
+            return false;
+        }
+
+        let toastInfo = this._toastStack[toastIndex];
+        let aniComponent = toastView.node.getComponent(CCMUIAnimation);
+        if (aniComponent && aniComponent.curAniName != CCMUIAniName.UINone) return false;   // 正在播放动画，不响应
+
+        toastInfo.isClose = true;
+        this._toastStack.splice(toastIndex, 1);
+
+        this._autoExecAnimation(toastView, CCMUIAniName.UIClose, () => {
+            // 动画播放完成回调
+            if (noCache) {
+                // 销毁ui，释放资源
+                toastView.cachedTS = 0;
+                toastView.releaseAssets(true);
+                toastView.node.destroy();
+            } else {
+                if (toastView.cacheTime > 0) {
+                    // 缓存ui
+                    this._toastCache.add(toastView);
+                    toastView.cachedTS = Math.floor(Date.now() / 1000);
+                    toastView.node.removeFromParent();
+                } else {
+                    // 销毁ui
+                    toastView.cachedTS = 0;
+                    toastView.node.destroy();
+                }
+            }
+        }, options?.aniImmediately);
+
+        return true;
+    }
+
+    public closeAllToasts() {
+        for (const toastInfo of this._toastStack) {
+            toastInfo.isClose = true;
+            if (toastInfo.toastView) {
+                // 销毁ui，释放资源
+                toastInfo.toastView.releaseAssets(true);
+                toastInfo.toastView.node.destroy();
+            }
+            this._toastStack = [];
+        }
+    }
+
+    public getToastIndex(toastView: CCMToastView): number {
+        for (let i = 0; i < this._toastStack.length; i++) {
+            if (this._toastStack[i].toastView === toastView) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     public update(dt: number) {
@@ -346,20 +524,33 @@ export default class CCMTipsManager {
             // 每5秒更新一次
             this._updateElapsed = 0;
             let curTimestamp = Math.floor(Date.now() / 1000);
-            let toDelete: CCMDialogView[] = [];
 
+            let toDeleteDialogs: CCMDialogView[] = [];
             this._dialogCache.forEach(uiView => {
                 if (cc.isValid(uiView) && uiView.cacheTime > 0) {
                     if (curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
                         // 缓存过期，销毁界面
                         uiView.destroy();
-                        toDelete.push(uiView);
+                        toDeleteDialogs.push(uiView);
                     }
                 }
             });
-
-            toDelete.forEach(uiView => {
+            toDeleteDialogs.forEach(uiView => {
                 this._dialogCache.delete(uiView);
+            });
+
+            let toDeleteToasts: CCMToastView[] = [];
+            this._toastCache.forEach(uiView => {
+                if (cc.isValid(uiView) && uiView.cacheTime > 0) {
+                    if (curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
+                        // 缓存过期，销毁界面
+                        uiView.destroy();
+                        toDeleteToasts.push(uiView);
+                    }
+                }
+            });
+            toDeleteToasts.forEach(uiView => {
+                this._toastCache.delete(uiView);
             });
         }
 

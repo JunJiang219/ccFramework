@@ -62,6 +62,17 @@ export default class Test extends cc.Component {
         tipsMgr.closeAllDialogs();
     }
 
+    openToast(event: cc.Event.EventTouch, customData: string) {
+        let options: CCMIDialogOptions = {
+            text: `This is toast ${++this._cnt}`,
+        };
+        tipsMgr.showToast(options);
+    }
+
+    closeToast(event: cc.Event.EventTouch, customData: string) {
+        tipsMgr.closeAllToasts();
+    }
+
     test() {
         uiMgr.open(UIID.ROOT1);
         uiMgr.open(UIID.ROOT2);

@@ -66,6 +66,11 @@ export default class CCMUIView extends CCMResKeeper {
     public onOpen(fromUIID: number, ...args: any[]): void { }
 
     /**
+     * 每次界面Open动画播放完毕时回调
+     */
+    public onOpenAniOver(): void { }
+
+    /**
      * 当界面被关闭时回调，每次调用Close时回调
      * 返回值会传递给下一个界面
      */

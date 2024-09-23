@@ -5,7 +5,7 @@
 import { resMgr } from "../base/res/CCMResManager";
 import { tipsMgr } from "../base/ui/CCMTipsManager";
 import { uiMgr } from "../base/ui/CCMUIManager";
-import { DialogConfig, UIConfig } from "../config/UIConfig";
+import { DialogConfig, ToastConfig, UIConfig } from "../config/UIConfig";
 
 const { ccclass, property } = cc._decorator;
 
@@ -26,6 +26,7 @@ export default class GameManager extends cc.Component {
         uiMgr.initUIConf(UIConfig);
         uiMgr.init();
         tipsMgr.initDialogConf(DialogConfig);
+        tipsMgr.initToastConf(ToastConfig);
     }
 
     update(dt: number) {
