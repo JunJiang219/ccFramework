@@ -97,8 +97,8 @@ export default class CCMUIManager {
         if (0 === this._layerRoot.length) {
             let cvs = cc.find("Canvas");
             for (let i = 0; i < CCMUILayerID.Num; i++) {
-                let layerRoot = this._createFullScreenNode(`#Layer${i + 1}`);
-                cvs.addChild(layerRoot, i);
+                let layerRoot = this._createFullScreenNode(`Layer${i + 1}`);
+                cvs.addChild(layerRoot, i + 1);
 
                 this._layerRoot.push(layerRoot);
             }
@@ -113,7 +113,7 @@ export default class CCMUIManager {
      */
     private _preventTouch(layerId: CCMUILayerID, zOrder: number, color?: cc.Color) {
         let node = cc.instantiate(DefaultKeeper.inst.preventPrefab);
-        node.name = `@preventTouch_${layerId}_${zOrder}`;
+        node.name = `preventTouch_${layerId}_${zOrder}`;
         if (color) {
             node.color = new cc.Color(color.r, color.g, color.b);
             node.opacity = color.a;
@@ -295,11 +295,11 @@ export default class CCMUIManager {
         uiView.node.parent = this._layerRoot[uiInfo.layerId];
         uiView.node.active = true;
 
-        // 快速关闭界面的设置，绑定界面中的 @background，实现快速关闭
+        // 快速关闭界面的设置，绑定界面中的 background，实现快速关闭
         if (uiView.quickClose) {
-            let backGround = uiView.node.getChildByName('@background');
+            let backGround = uiView.node.getChildByName('background');
             if (!backGround) {
-                backGround = this._createFullScreenNode('@background');
+                backGround = this._createFullScreenNode('background');
                 uiView.node.addChild(backGround, -1);
             }
             backGround.targetOff(cc.Node.EventType.TOUCH_END);

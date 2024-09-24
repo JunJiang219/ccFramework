@@ -114,7 +114,7 @@ export default class CCMTipsManager {
      */
     private _preventTouch(layerId: CCMUILayerID, zOrder: number, color?: cc.Color) {
         let node = cc.instantiate(DefaultKeeper.inst.preventPrefab);
-        node.name = `@preventTouch_${layerId}_${zOrder}`;
+        node.name = `preventTouch_${layerId}_${zOrder}`;
         if (color) {
             node.color = new cc.Color(color.r, color.g, color.b);
             node.opacity = color.a;
@@ -260,11 +260,11 @@ export default class CCMTipsManager {
         dialogView.node.parent = uiMgr.getLayerRoot(CCMUILayerID.Dialog);
         dialogView.node.active = true;
 
-        // 快速关闭界面的设置，绑定界面中的 @background，实现快速关闭
+        // 快速关闭界面的设置，绑定界面中的 background，实现快速关闭
         if (dialogView.quickClose) {
-            let backGround = dialogView.node.getChildByName('@background');
+            let backGround = dialogView.node.getChildByName('background');
             if (!backGround) {
-                backGround = this._createFullScreenNode('@background');
+                backGround = this._createFullScreenNode('background');
                 dialogView.node.addChild(backGround, -1);
             }
             backGround.targetOff(cc.Node.EventType.TOUCH_END);

@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "@toast",
+    "_name": "toast",
     "_objFlags": 0,
     "_parent": null,
     "_children": [
@@ -217,7 +217,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 97.87,
+      "width": 0,
       "height": 50.4
     },
     "_anchorPoint": {

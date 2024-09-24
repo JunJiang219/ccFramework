@@ -8,7 +8,7 @@ export enum DIALOGID {
 }
 
 export const DialogConfig: { [dialogId: number]: CCMIDialogConf } = {
-    [DIALOGID.DEFAULT]: { prefabPath: "prefabs/common/@dialog", preventTouch: true }
+    [DIALOGID.DEFAULT]: { prefabPath: "prefabs/common/dialog", preventTouch: true }
 }
 /** ------------------------------ Dialog Config ----------------------------- */
 
@@ -18,7 +18,7 @@ export enum TOASTID {
 }
 
 export const ToastConfig: { [toastId: number]: CCMIToastConf } = {
-    [TOASTID.DEFAULT]: { prefabPath: "prefabs/common/@toast" }
+    [TOASTID.DEFAULT]: { prefabPath: "prefabs/common/toast" }
 }
 /** ------------------------------ Toast Config ----------------------------- */
 
