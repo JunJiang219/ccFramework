@@ -47,6 +47,14 @@ export class CCMResKeeper extends Component {
     }
 
     /**
+     * 取消缓存资源（只对 ManualDelay 有效）
+     * @param asset 
+     */
+    public unCacheAsset(asset: Asset) {
+        resMgr.unCacheAsset(this, asset);
+    }
+
+    /**
      * 组件销毁时自动释放所有keep的资源
      */
     public onDestroy() {

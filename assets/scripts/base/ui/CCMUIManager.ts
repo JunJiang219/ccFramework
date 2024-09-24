@@ -8,7 +8,6 @@ import { ccmLog } from "../utils/CCMLog";
 import CCMUIAnimation, { CCMUIAniName } from "./CCMUIAnimation";
 import CCMUIView, { CCMUILayerID } from "./CCMUIView";
 
-const ASSET_DELAY_RELEASE_TIME = 60; // 资源默认延迟释放时间（单位：秒）
 const UI_UPDATE_INTERVAL = 5;        // UI管理器更新间隔（单位：秒）
 
 // UI附加参数

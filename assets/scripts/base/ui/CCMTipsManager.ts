@@ -4,7 +4,7 @@
 
 import DefaultKeeper from "../../manager/DefaultKeeper";
 import { resLoader } from "../res/CCMResLoader";
-import { CCMResCacheArgs, CCMResReleaseTiming } from "../res/CCMResManager";
+import { CCMResReleaseTiming } from "../res/CCMResManager";
 import { ccmLog } from "../utils/CCMLog";
 import CCMDialogView, { CCMIDialogOptions } from "./CCMDialogView";
 import CCMToastView, { CCMIToastOptions } from "./CCMToastView";
@@ -12,7 +12,6 @@ import CCMUIAnimation, { CCMUIAniName } from "./CCMUIAnimation";
 import { uiMgr } from "./CCMUIManager";
 import { CCMUILayerID } from "./CCMUIView";
 
-const ASSET_DELAY_RELEASE_TIME = 60; // 资源默认延迟释放时间（单位：秒）
 const CHECK_INTERVAL = 5;   // 提示管理器更新间隔（单位：秒）
 
 // dialog配置
@@ -200,11 +199,7 @@ export default class CCMTipsManager {
             }
 
             dialogView.init(dialogId, options);
-            let args: CCMResCacheArgs = {
-                releaseTiming: CCMResReleaseTiming.AfterDestroy,
-                keepTime: ASSET_DELAY_RELEASE_TIME,
-            };
-            dialogView.cacheAsset(prefab, args);
+            dialogView.cacheAsset(prefab, { releaseTiming: CCMResReleaseTiming.AfterDestroy });
             completeCallback(dialogView);
         });
     }
@@ -406,11 +401,7 @@ export default class CCMTipsManager {
             }
 
             toastView.init(toastId, options);
-            let args: CCMResCacheArgs = {
-                releaseTiming: CCMResReleaseTiming.AfterDestroy,
-                keepTime: ASSET_DELAY_RELEASE_TIME,
-            };
-            toastView.cacheAsset(prefab, args);
+            toastView.cacheAsset(prefab, { releaseTiming: CCMResReleaseTiming.AfterDestroy });
             completeCallback(toastView);
         });
     }
