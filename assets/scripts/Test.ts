@@ -7,6 +7,7 @@
 
 import { resLoader } from "./base/res/CCMResLoader";
 import { CCMResReleaseTiming, resMgr } from "./base/res/CCMResManager";
+import { CCMResUtil } from "./base/res/CCMResUtil";
 import { CCMIDialogOptions } from "./base/ui/CCMDialogView";
 import { tipsMgr } from "./base/ui/CCMTipsManager";
 import { uiMgr } from "./base/ui/CCMUIManager";
@@ -80,32 +81,6 @@ export default class Test extends cc.Component {
         uiMgr.open(UIID.ROOT1);
         uiMgr.open(UIID.ROOT2);
         uiMgr.closeAll();
-    }
-
-    cache() {
-        resLoader.load("prefabs/root1", (err, res) => {
-            if (err) {
-                ccmLog.error(err);
-                return;
-            }
-            this._res1 = res;
-            resMgr.cacheAsset(DefaultKeeper.inst, res, { releaseTiming: CCMResReleaseTiming.ManualDelay, keepTime: 10 });
-
-            let cacheArgs = resMgr.getCacheArgs(DefaultKeeper.inst, this._res1);
-            if (cacheArgs) {
-                ccmLog.log('after cache, keepRef = ' + cacheArgs.keepRef);
-            }
-
-            ccmLog.log(resMgr.getCacheInfo(DefaultKeeper.inst));
-        });
-    }
-
-    unCache() {
-        resMgr.unCacheAsset(DefaultKeeper.inst, this._res1);
-        let cacheArgs = resMgr.getCacheArgs(DefaultKeeper.inst, this._res1);
-        if (cacheArgs) {
-            ccmLog.log('after unCache, keepRef = ' + cacheArgs.keepRef);
-        }
     }
 
     releaseAll() {
