@@ -58,6 +58,7 @@ export class CCMResKeeper extends Component {
      * 组件销毁时自动释放所有keep的资源
      */
     public onDestroy() {
+        resMgr.invalidateKeeper(this);
         this.releaseAssets(false);
     }
 

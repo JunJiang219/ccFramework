@@ -2,10 +2,12 @@
  * 游戏管理器
  */
 
+import { CCMLanguageType, i18nMgr } from "../base/i18n/CCMI18nManager";
 import { resMgr } from "../base/res/CCMResManager";
 import { tipsMgr } from "../base/ui/CCMTipsManager";
 import { uiMgr } from "../base/ui/CCMUIManager";
-import { DialogConfig, ToastConfig, UIConfig } from "../config/UIConfig";
+import { ccmLog } from "../base/utils/CCMLog";
+import { DialogConfig, ToastConfig, UIConfig, UIID } from "../config/UIConfig";
 
 const { ccclass, property } = cc._decorator;
 
@@ -27,6 +29,10 @@ export default class GameManager extends cc.Component {
         uiMgr.init();
         tipsMgr.initDialogConf(DialogConfig);
         tipsMgr.initToastConf(ToastConfig);
+        i18nMgr.setLanguage(CCMLanguageType.EN, (curLang: string) => {
+            ccmLog.info(`Current language: ${curLang}`);
+            uiMgr.open(UIID.TEST);
+        });
     }
 
     update(dt: number) {

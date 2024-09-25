@@ -5,6 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import { CCMLanguageType, i18nMgr } from "./base/i18n/CCMI18nManager";
 import { resLoader } from "./base/res/CCMResLoader";
 import { CCMResReleaseTiming, resMgr } from "./base/res/CCMResManager";
 import { CCMResUtil } from "./base/res/CCMResUtil";
@@ -75,6 +76,14 @@ export default class Test extends cc.Component {
 
     closeToast(event: cc.Event.EventTouch, customData: string) {
         tipsMgr.closeAllToasts();
+    }
+
+    changeLanguage(event: cc.Event.EventTouch, customData: string) {
+        if (CCMLanguageType.EN == i18nMgr.language) {
+            i18nMgr.setLanguage(CCMLanguageType.TH);
+        } else {
+            i18nMgr.setLanguage(CCMLanguageType.EN);
+        }
     }
 
     test() {

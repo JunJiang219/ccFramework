@@ -42,4 +42,9 @@ export default class CCMUtil {
         }
         return params;
     }
+
+    // 判断值是否在枚举中
+    public static isValueInEnum(value: any, enumObj: any) {
+        return Object.values(enumObj).includes(value);
+    }
 }

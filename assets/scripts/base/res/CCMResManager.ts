@@ -10,7 +10,7 @@ const RES_UPDATE_INTERVAL = 5;          // 资源管理器更新间隔（单位�
 
 // 资源释放时机类型
 export enum CCMResReleaseTiming {
-    OnDestroy,      // 组件销毁时，立即释放（实际上也会延迟 RES_UPDATE_INTERVAL 释放）
+    OnDestroy,      // 组件销毁时，立即释放
     AfterDestroy,   // 组件销毁后，延迟一定时间释放
     ManualDelay,    // 手动延迟释放
 }
@@ -132,6 +132,16 @@ export class CCMResManager {
 
         let cacheMap: CCMResCacheMap = cacheInfo.cacheMap;
         return cacheMap.get(asset);
+    }
+
+    // 使指定 keeper 失效（节点销毁时会调用，用户不要乱调）
+    public invalidateKeeper(resKeeper: CCMResKeeper): void {
+        let cacheInfo: CCMResCacheInfo = this._resMap.get(resKeeper);
+        if (undefined == cacheInfo) {
+            return;
+        }
+
+        if (!cacheInfo.keeperInvalidTS) cacheInfo.keeperInvalidTS = Math.floor(Date.now() / 1000);
     }
 
     /**
