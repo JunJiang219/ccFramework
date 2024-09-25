@@ -45,17 +45,17 @@ export default class CCMI18nManager {
 
     private _compSet: Set<CCMI18nComponent> = new Set();    // i18n组件集合
 
-    public setLanguage(lang: string, finishCb?: (curLang: string) => void) {
+    public setLanguage(lang: string, finishCb?: (isSuccess: boolean, curLang: string) => void) {
         if (CCMI18nState.CONFIG_LOADING == this._state) {
             ccmLog.warn("i18n config is loading, please wait...");
-            finishCb && finishCb(this._language);
+            finishCb && finishCb(false, this._language);
             return;
         }
         let langSupport = CCMUtil.isValueInEnum(lang, CCMLanguageType);
         let oldLang = this._language;
         let newLang = langSupport ? lang : CCMLanguageType.EN;
         if (oldLang === newLang) {
-            finishCb && finishCb(this._language);
+            finishCb && finishCb(false, this._language);
             return;
         }
         this._language = newLang;
@@ -69,7 +69,7 @@ export default class CCMI18nManager {
                 this._language = oldLang;
                 this._state = CCMI18nState.CONFIG_LOAD_FAILED;
                 ccmLog.error(err);
-                finishCb && finishCb(this._language);
+                finishCb && finishCb(false, this._language);
                 return;
             }
 
@@ -82,7 +82,7 @@ export default class CCMI18nManager {
             this._state = CCMI18nState.CONFIG_LOAD_SUCCESS;
             this.reloadAllComponent();
             evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._language);
-            finishCb && finishCb(this._language);
+            finishCb && finishCb(true, this._language);
         });
     }
 

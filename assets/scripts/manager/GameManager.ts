@@ -29,9 +29,9 @@ export default class GameManager extends cc.Component {
         uiMgr.init();
         tipsMgr.initDialogConf(DialogConfig);
         tipsMgr.initToastConf(ToastConfig);
-        i18nMgr.setLanguage(CCMLanguageType.EN, (curLang: string) => {
-            ccmLog.info(`Current language: ${curLang}`);
-            uiMgr.open(UIID.TEST);
+        i18nMgr.setLanguage(CCMLanguageType.EN, (isSuccess: boolean, curLang: string) => {
+            ccmLog.info(`setLanguage success: ${isSuccess}, Current language: ${curLang}`);
+            if (isSuccess) uiMgr.open(UIID.TEST);
         });
     }
 
