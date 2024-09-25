@@ -3,8 +3,9 @@
  */
 
 import DefaultKeeper from "../../manager/DefaultKeeper";
+import { evtMgr } from "../common/CCMEventManager";
+import { CCMEvent } from "../config/CCMEvent";
 import { resLoader } from "../res/CCMResLoader";
-import { CCMResReleaseTiming } from "../res/CCMResManager";
 import { ccmLog } from "../utils/CCMLog";
 import CCMUtil from "../utils/CCMUtil";
 import CCMI18nComponent from "./CCMI18nComponent";
@@ -80,6 +81,7 @@ export default class CCMI18nManager {
             this._textureConf.set(this._language, assets[1].json);
             this._state = CCMI18nState.CONFIG_LOAD_SUCCESS;
             this.reloadAllComponent();
+            evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._language);
             finishCb && finishCb(this._language);
         });
     }
@@ -88,16 +90,16 @@ export default class CCMI18nManager {
     public getTextValue(key: string, lang?: string) {
         let checkLang = lang || this._language;
         let jsonObj = this._textConf.get(checkLang);
-        if (!jsonObj) return `not found language ${checkLang}`;
-        return jsonObj[key] || `not found ${key}`;
+        if (!jsonObj) return `language_${checkLang}`;
+        return jsonObj[key] || `${checkLang}_${key}`;
     }
 
     // 获取图片语言值
     public getTextureValue(key: string, lang?: string) {
         let checkLang = lang || this._language;
         let jsonObj = this._textureConf.get(checkLang);
-        if (!jsonObj) return `not found language ${checkLang}`;
-        return jsonObj[key] || `not found ${key}`;
+        if (!jsonObj) return `language_${checkLang}`;
+        return jsonObj[key] || `${checkLang}_${key}`;
     }
 
     public addComp(comp: CCMI18nComponent) {

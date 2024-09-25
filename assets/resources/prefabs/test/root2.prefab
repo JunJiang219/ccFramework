@@ -307,7 +307,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "quickClose": true,
+    "quickClose": false,
     "cacheTime": 0,
     "_id": ""
   },

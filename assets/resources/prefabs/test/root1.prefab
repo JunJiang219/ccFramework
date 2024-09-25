@@ -306,7 +306,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "quickClose": true,
+    "quickClose": false,
     "cacheTime": 10,
     "_id": ""
   },
