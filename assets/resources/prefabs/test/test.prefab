@@ -533,7 +533,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "openUI",
-    "customEventData": "0"
+    "customEventData": "1"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -957,7 +957,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "openUI",
-    "customEventData": "1"
+    "customEventData": "2"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1381,7 +1381,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "closeUI",
-    "customEventData": "0"
+    "customEventData": "1"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1805,7 +1805,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "closeUI",
-    "customEventData": "1"
+    "customEventData": "2"
   },
   {
     "__type__": "cc.PrefabInfo",
