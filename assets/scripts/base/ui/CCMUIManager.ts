@@ -307,7 +307,7 @@ export default class CCMUIManager {
                 event.stopPropagation();
                 let aniComponent = uiView.node.getComponent(CCMUIAnimation);
                 if (aniComponent && aniComponent.curAniName != CCMUIAniName.UINone) return;   // 正在播放动画，不响应
-                this.close(uiView, null);
+                this.close(uiView, uiInfo.uiArgs);
             }, backGround);
         }
 
@@ -321,7 +321,7 @@ export default class CCMUIManager {
     }
 
     // 关闭指定界面
-    public close(uiOrId: CCMUIView | number, uiArgs: CCMIUIArgs | null, noCache: boolean = false) {
+    public close(uiOrId: CCMUIView | number, uiArgs: CCMIUIArgs | null = null, noCache: boolean = false) {
         let uiIndex = this.getUIIndex(uiOrId);
         if (uiIndex < 0) {
             if ('number' == typeof uiOrId) {

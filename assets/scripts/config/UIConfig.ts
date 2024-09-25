@@ -34,6 +34,6 @@ let baseZOrder_Game = 0;
 export const UIConfig: { [uiId: number]: CCMIUIConf } = {
     [UIID.TEST]: { prefabPath: "prefabs/test/test", layerId: CCMUILayerID.Game, zOrder: ++baseZOrder_Game, preventTouch: false },
     [UIID.ROOT1]: { prefabPath: "prefabs/test/root1", layerId: CCMUILayerID.Game, zOrder: ++baseZOrder_Game, preventTouch: false },
-    [UIID.ROOT2]: { prefabPath: "prefabs/test/root2", layerId: CCMUILayerID.Game, zOrder: ++baseZOrder_Game, preventTouch: false },
+    [UIID.ROOT2]: { prefabPath: "prefabs/test/root2", layerId: CCMUILayerID.Game, zOrder: ++baseZOrder_Game, preventTouch: true },
 };
 /** ------------------------------ UI Config --------------------------------- */

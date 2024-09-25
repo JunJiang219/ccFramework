@@ -39,7 +39,11 @@ export default class Test extends cc.Component {
     // update (dt) {}
     openUI(event: cc.Event.EventTouch, customData: string) {
         let uiId = parseInt(customData);
-        uiMgr.open(uiId);
+        if (1 == uiId) {
+            uiMgr.open(UIID.ROOT1, { aniImmediately: true });
+        } else {
+            uiMgr.open(uiId);
+        }
 
         // cc.resources.load("prefabs/root1", (err, res) => {
         //     if (err) {
@@ -53,7 +57,11 @@ export default class Test extends cc.Component {
 
     closeUI(event: cc.Event.EventTouch, customData: string) {
         let uiId = parseInt(customData);
-        uiMgr.close(uiId, null);
+        if (1 == uiId) {
+            uiMgr.close(UIID.ROOT1, { aniImmediately: true });
+        } else {
+            uiMgr.close(uiId, null);
+        }
     }
 
     openDialog(event: cc.Event.EventTouch, customData: string) {
