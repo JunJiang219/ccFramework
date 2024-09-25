@@ -1,6 +1,6 @@
-import { CCMIDialogConf, CCMIToastConf } from "../base/ui/CCMTipsManager";
-import { CCMIUIConf } from "../base/ui/CCMUIManager";
-import { CCMUILayerID } from "../base/ui/CCMUIView";
+import { CCMIDialogConf, CCMIToastConf } from "../../base/ui/CCMTipsManager";
+import { CCMIUIConf } from "../../base/ui/CCMUIManager";
+import { CCMUILayerID } from "../../base/ui/CCMUIView";
 
 /** ------------------------------ Dialog Config ----------------------------- */
 export enum DIALOGID {

@@ -2,11 +2,11 @@
  * 游戏管理器
  */
 
-import { CCMLanguageType, i18nMgr } from "../base/i18n/CCMI18nManager";
-import { resMgr } from "../base/res/CCMResManager";
-import { tipsMgr } from "../base/ui/CCMTipsManager";
-import { uiMgr } from "../base/ui/CCMUIManager";
-import { ccmLog } from "../base/utils/CCMLog";
+import { CCMLanguageType, i18nMgr } from "../../base/i18n/CCMI18nManager";
+import { resMgr } from "../../base/res/CCMResManager";
+import { tipsMgr } from "../../base/ui/CCMTipsManager";
+import { uiMgr } from "../../base/ui/CCMUIManager";
+import { ccmLog } from "../../base/utils/CCMLog";
 import { DialogConfig, ToastConfig, UIConfig, UIID } from "../config/UIConfig";
 
 const { ccclass, property } = cc._decorator;

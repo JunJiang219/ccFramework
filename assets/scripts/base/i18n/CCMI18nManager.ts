@@ -2,9 +2,9 @@
  * 多语言管理器
  */
 
-import DefaultKeeper from "../../manager/DefaultKeeper";
 import { evtMgr } from "../common/CCMEventManager";
 import { CCMEvent } from "../config/CCMEvent";
+import CCMDefaultKeeper from "../res/CCMDefaultKeeper";
 import { resLoader } from "../res/CCMResLoader";
 import { ccmLog } from "../utils/CCMLog";
 import CCMUtil from "../utils/CCMUtil";
@@ -74,8 +74,8 @@ export default class CCMI18nManager {
             }
 
             // 长久保存，防止意外释放
-            DefaultKeeper.inst.cacheAsset(assets[0]);
-            DefaultKeeper.inst.cacheAsset(assets[1]);
+            CCMDefaultKeeper.inst.cacheAsset(assets[0]);
+            CCMDefaultKeeper.inst.cacheAsset(assets[1]);
 
             this._textConf.set(this._language, assets[0].json);
             this._textureConf.set(this._language, assets[1].json);

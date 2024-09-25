@@ -2,7 +2,7 @@
  * 提示管理器
  */
 
-import DefaultKeeper from "../../manager/DefaultKeeper";
+import CCMDefaultKeeper from "../res/CCMDefaultKeeper";
 import { resLoader } from "../res/CCMResLoader";
 import { CCMResReleaseTiming } from "../res/CCMResManager";
 import { ccmLog } from "../utils/CCMLog";
@@ -113,7 +113,7 @@ export default class CCMTipsManager {
      * @param color 防触摸节点颜色
      */
     private _preventTouch(layerId: CCMUILayerID, zOrder: number, color?: cc.Color) {
-        let node = cc.instantiate(DefaultKeeper.inst.preventPrefab);
+        let node = cc.instantiate(CCMDefaultKeeper.inst.preventPrefab);
         node.name = `preventTouch_${layerId}_${zOrder}`;
         if (color) {
             node.color = new cc.Color(color.r, color.g, color.b);
