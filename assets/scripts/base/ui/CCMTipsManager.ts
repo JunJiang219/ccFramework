@@ -163,6 +163,17 @@ export default class CCMTipsManager {
      * @param options 界面初始化参数
      */
     private _getOrCreateDialog(dialogId: number, completeCallback: (dialogView: CCMDialogView) => void, options: CCMIDialogOptions): void {
+        // 先检查缓存
+        for (const dialogView of this._dialogCache) {
+            if (cc.isValid(dialogView) && dialogView.dialogId === dialogId) {
+                // 缓存命中，直接返回
+                this._dialogCache.delete(dialogView);
+                dialogView.cachedTS = 0;
+                completeCallback(dialogView);
+                return;
+            }
+        }
+
         // 找到UI配置
         let dialogConf = this._dialogConf[dialogId];
         let dialogPath = dialogConf.prefabPath;
@@ -221,6 +232,7 @@ export default class CCMTipsManager {
             preventNode: null,
         };
         this._dialogStack.push(dialogInfo);
+        let dialogIndex = this._dialogStack.length - 1;
 
         if (dialogConf.preventTouch) {
             // 添加防触摸层
@@ -230,6 +242,9 @@ export default class CCMTipsManager {
         this._getOrCreateDialog(dialogId, (dialogView: CCMDialogView) => {
             if (dialogInfo.isClose || !dialogView) {
                 ccmLog.log(`getOrCreateUI ${dialogId} failed! close state : ${dialogInfo.isClose} , dialogView : ${dialogView}`);
+
+                // 创建失败，从堆栈删除
+                this._dialogStack.splice(dialogIndex, 1);
 
                 if (dialogInfo.preventNode) {
                     dialogInfo.preventNode.destroy();
@@ -365,6 +380,17 @@ export default class CCMTipsManager {
     }
 
     private _getOrCreateToast(toastId: number, completeCallback: (toastView: CCMToastView) => void, options: CCMIToastOptions): void {
+        // 先检查缓存
+        for (const toastView of this._toastCache) {
+            if (cc.isValid(toastView) && toastView.toastId === toastId) {
+                // 缓存命中，直接返回
+                this._toastCache.delete(toastView);
+                toastView.cachedTS = 0;
+                completeCallback(toastView);
+                return;
+            }
+        }
+
         // 找到UI配置
         let toastConf = this._toastConf[toastId];
         let toastPath = toastConf.prefabPath;
@@ -422,10 +448,14 @@ export default class CCMTipsManager {
             zOrder: zOrder,
         };
         this._toastStack.push(toastInfo);
+        let toastIndex = this._toastStack.length - 1;
 
         this._getOrCreateToast(toastId, (toastView: CCMToastView) => {
             if (toastInfo.isClose || !toastView) {
                 ccmLog.log(`_getOrCreateToast ${toastId} failed! close state : ${toastInfo.isClose} , toastView : ${toastView}`);
+                // 创建失败，从堆栈删除
+                this._toastStack.splice(toastIndex, 1);
+
                 toastView?.node.destroy();
                 return;
             }
@@ -518,12 +548,14 @@ export default class CCMTipsManager {
 
             let toDeleteDialogs: CCMDialogView[] = [];
             this._dialogCache.forEach(uiView => {
-                if (cc.isValid(uiView) && uiView.cacheTime > 0) {
-                    if (curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
+                if (cc.isValid(uiView)) {
+                    if (uiView.cacheTime > 0 && curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
                         // 缓存过期，销毁界面
-                        uiView.destroy();
+                        uiView.node.destroy();
                         toDeleteDialogs.push(uiView);
                     }
+                } else {
+                    toDeleteDialogs.push(uiView);
                 }
             });
             toDeleteDialogs.forEach(uiView => {
@@ -532,12 +564,14 @@ export default class CCMTipsManager {
 
             let toDeleteToasts: CCMToastView[] = [];
             this._toastCache.forEach(uiView => {
-                if (cc.isValid(uiView) && uiView.cacheTime > 0) {
-                    if (curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
+                if (cc.isValid(uiView)) {
+                    if (uiView.cacheTime > 0 && curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
                         // 缓存过期，销毁界面
-                        uiView.destroy();
+                        uiView.node.destroy();
                         toDeleteToasts.push(uiView);
                     }
+                } else {
+                    toDeleteToasts.push(uiView);
                 }
             });
             toDeleteToasts.forEach(uiView => {

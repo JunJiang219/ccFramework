@@ -182,6 +182,17 @@ export default class CCMUIManager {
      * @param uiArgs 界面初始化参数
      */
     private _getOrCreateUI(uiId: number, progressCallback: ProgressCallback | null, preLoadProgressCb: ProgressCallback | null, completeCallback: (uiView: CCMUIView | null) => void, uiArgs: CCMIUIArgs | null): void {
+        // 先检查缓存
+        for (const uiView of this._uiCache) {
+            if (cc.isValid(uiView) && uiView.uiId === uiId) {
+                // 缓存命中，直接返回
+                this._uiCache.delete(uiView);
+                uiView.cachedTS = 0;
+                completeCallback(uiView);
+                return;
+            }
+        }
+
         // 找到UI配置
         let uiConf = this._uiConf[uiId];
         let uiPath = uiConf.prefabPath;
@@ -491,12 +502,15 @@ export default class CCMUIManager {
             let toDelete: CCMUIView[] = [];
 
             this._uiCache.forEach(uiView => {
-                if (cc.isValid(uiView) && uiView.cacheTime > 0) {
-                    if (curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
+                if (cc.isValid(uiView)) {
+                    if (uiView.cacheTime > 0 && curTimestamp - uiView.cachedTS >= uiView.cacheTime) {
                         // 缓存过期，销毁界面
-                        uiView.destroy();
+                        uiView.node.destroy();
                         toDelete.push(uiView);
                     }
+                } else {
+                    // 失效ui，销毁
+                    toDelete.push(uiView);
                 }
             });
 

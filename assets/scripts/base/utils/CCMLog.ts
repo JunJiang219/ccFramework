@@ -36,7 +36,7 @@ export default class CCMLog {
         s += d.getDate() + " "; //取日期
         s += d.getHours() + ":"; //取小时
         s += d.getMinutes() + ":"; //取分
-        s += d.getSeconds(); //取秒
+        s += d.getSeconds() + ":"; //取秒
         s += d.getMilliseconds(); //取毫秒
         return s;
     }

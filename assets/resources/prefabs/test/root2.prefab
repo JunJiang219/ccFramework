@@ -308,7 +308,7 @@
     },
     "_enabled": true,
     "quickClose": false,
-    "cacheTime": 0,
+    "cacheTime": 10,
     "_id": ""
   },
   {
