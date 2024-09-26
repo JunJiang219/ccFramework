@@ -28,16 +28,21 @@ export default class CCMLog {
         return CCMLog._instance;
     }
 
+    private _formatNumber(num: number, length: number = 2): string {
+        // 将数字转换为字符串，并在前面拼接指定数量的零
+        return ('0'.repeat(length) + num).slice(-length);
+    }
+
     private _getDate() {
         let d = new Date();
         let s = "";
         s = d.getFullYear() + "-"; //取年份
-        s = s + (d.getMonth() + 1) + "-"; //取月份
-        s += d.getDate() + " "; //取日期
-        s += d.getHours() + ":"; //取小时
-        s += d.getMinutes() + ":"; //取分
-        s += d.getSeconds() + ":"; //取秒
-        s += d.getMilliseconds(); //取毫秒
+        s = s + this._formatNumber((d.getMonth() + 1)) + "-"; //取月份
+        s += this._formatNumber(d.getDate()) + " "; //取日期
+        s += this._formatNumber(d.getHours()) + ":"; //取小时
+        s += this._formatNumber(d.getMinutes()) + ":"; //取分
+        s += this._formatNumber(d.getSeconds()) + ":"; //取秒
+        s += this._formatNumber(d.getMilliseconds(), 3); //取毫秒
         return s;
     }
 
