@@ -9,14 +9,15 @@ import { CCMNetData, CCMCallbackObject } from "./CCMNetInterface";
 
 export class CCMNetManager {
     private static _instance: CCMNetManager = null;
-    protected _channels: { [key: number]: CCMNetNode } = {};
-
-    public static getInstance(): CCMNetManager {
+    private constructor() { }
+    public static get inst(): CCMNetManager {
         if (this._instance == null) {
             this._instance = new CCMNetManager();
         }
         return this._instance;
     }
+
+    protected _channels: { [key: number]: CCMNetNode } = {};
 
     // 添加Node，返回ChannelID
     public setNetNode(newNode: CCMNetNode, channelId: number = 0) {
@@ -69,3 +70,5 @@ export class CCMNetManager {
         }
     }
 }
+
+export const netMgr = CCMNetManager.inst;

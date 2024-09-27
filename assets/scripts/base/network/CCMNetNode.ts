@@ -1,3 +1,4 @@
+import { ccmLog } from "../utils/CCMLog";
 import { CCMISocket, CCMINetworkTips, CCMIProtocolHelper, CCMRequestObject, CCMCallbackObject, CCMNetData, CCMNetCallFunc } from "./CCMNetInterface";
 
 /*
@@ -60,7 +61,7 @@ export class CCMNetNode {
 
     /********************** 网络相关处理 *********************/
     public init(socket: CCMISocket, protocol: CCMIProtocolHelper, networkTips: any = null, execFunc: CCMExecuterFunc = null) {
-        console.log(`CCMNetNode init socket`);
+        ccmLog.log(`CCMNetNode init socket`);
         this._socket = socket;
         this._protocolHelper = protocol;
         this._networkTips = networkTips;
@@ -112,7 +113,7 @@ export class CCMNetNode {
 
     // 网络连接成功
     protected onConnected(event: any) {
-        console.log("CCMNetNode onConnected!")
+        ccmLog.log("CCMNetNode onConnected!")
         this._isSocketOpen = true;
         // 如果设置了鉴权回调，在连接完成后进入鉴权阶段，等待鉴权结束
         if (this._connectedCallback !== null) {
@@ -121,19 +122,19 @@ export class CCMNetNode {
         } else {
             this.onChecked();
         }
-        console.log("CCMNetNode onConnected! state =" + this._state);
+        ccmLog.log("CCMNetNode onConnected! state =" + this._state);
     }
 
     // 连接验证成功，进入工作状态
     protected onChecked() {
-        console.log("CCMNetNode onChecked!")
+        ccmLog.log("CCMNetNode onChecked!")
         this._state = CCMNetNodeState.Working;
         // 关闭连接或重连中的状态显示
         this.updateNetTips(CCMNetTipsType.Connecting, false);
         this.updateNetTips(CCMNetTipsType.ReConnecting, false);
 
         // 重发待发送信息
-        console.log(`CCMNetNode flush ${this._requests.length} request`)
+        ccmLog.log(`CCMNetNode flush ${this._requests.length} request`)
         if (this._requests.length > 0) {
             for (var i = 0; i < this._requests.length;) {
                 let req = this._requests[i];
@@ -151,10 +152,10 @@ export class CCMNetNode {
 
     // 接收到一个完整的消息包
     protected onMessage(msg: any): void {
-        // console.log(`CCMNetNode onMessage status = ` + this._state);
+        // ccmLog.log(`CCMNetNode onMessage status = ` + this._state);
         // 进行头部的校验（实际包长与头部长度是否匹配）
         if (!this._protocolHelper.checkPackage(msg)) {
-            console.error(`CCMNetNode checkHead Error`);
+            ccmLog.error(`CCMNetNode checkHead Error`);
             return;
         }
         // 接受到数据，重新定时收数据计时器
@@ -163,19 +164,19 @@ export class CCMNetNode {
         this.resetHeartbeatTimer();
         // 触发消息执行
         let rspCmd = this._protocolHelper.getPackageId(msg);
-        console.log(`CCMNetNode onMessage rspCmd = ` + rspCmd);
+        ccmLog.log(`CCMNetNode onMessage rspCmd = ` + rspCmd);
         // 优先触发request队列
         if (this._requests.length > 0) {
             for (let reqIdx in this._requests) {
                 let req = this._requests[reqIdx];
                 if (req.rspCmd == rspCmd) {
-                    console.log(`CCMNetNode execute request rspcmd ${rspCmd}`);
+                    ccmLog.log(`CCMNetNode execute request rspcmd ${rspCmd}`);
                     this._callbackExecuter(req.rspObject, msg);
                     this._requests.splice(parseInt(reqIdx), 1);
                     break;
                 }
             }
-            console.log(`CCMNetNode still has ${this._requests.length} request waitting`);
+            ccmLog.log(`CCMNetNode still has ${this._requests.length} request waitting`);
             if (this._requests.length == 0) {
                 this.updateNetTips(CCMNetTipsType.Requesting, false);
             }
@@ -184,14 +185,14 @@ export class CCMNetNode {
         let listeners = this._listener[rspCmd];
         if (null != listeners) {
             for (const rsp of listeners) {
-                console.log(`CCMNetNode execute listener cmd ${rspCmd}`);
+                ccmLog.log(`CCMNetNode execute listener cmd ${rspCmd}`);
                 this._callbackExecuter(rsp, msg);
             }
         }
     }
 
     protected onError(event: any) {
-        console.error(event);
+        ccmLog.error(event);
     }
 
     protected onClosed(event: any) {
@@ -199,7 +200,7 @@ export class CCMNetNode {
 
         // 执行断线回调，返回false表示不进行重连
         if (this._disconnectCallback && !this._disconnectCallback()) {
-            console.log(`disconnect return!`)
+            ccmLog.log(`disconnect return!`)
             return;
         }
 
@@ -245,7 +246,7 @@ export class CCMNetNode {
     // 发起请求，如果当前处于重连中，进入缓存列表等待重连完成后发送
     public send(buf: CCMNetData, force: boolean = false): boolean {
         if (this._state == CCMNetNodeState.Working || force) {
-            console.log(`socket send ...`);
+            ccmLog.log(`socket send ...`);
             return this._socket.send(buf);
         } else if (this._state == CCMNetNodeState.Checking ||
             this._state == CCMNetNodeState.Connecting) {
@@ -254,10 +255,10 @@ export class CCMNetNode {
                 rspCmd: 0,
                 rspObject: null
             });
-            console.log("CCMNetNode socket is busy, push to send buffer, current state is " + this._state);
+            ccmLog.log("CCMNetNode socket is busy, push to send buffer, current state is " + this._state);
             return true;
         } else {
-            console.error("CCMNetNode request error! current state is " + this._state);
+            ccmLog.error("CCMNetNode request error! current state is " + this._state);
             return false;
         }
     }
@@ -267,7 +268,7 @@ export class CCMNetNode {
         if (this._state == CCMNetNodeState.Working || force) {
             this._socket.send(buf);
         }
-        console.log(`CCMNetNode request with timeout for ${rspCmd}`);
+        ccmLog.log(`CCMNetNode request with timeout for ${rspCmd}`);
         // 进入发送缓存列表
         this._requests.push({
             buffer: buf, rspCmd, rspObject
@@ -282,7 +283,7 @@ export class CCMNetNode {
     public requestUnique(buf: CCMNetData, rspCmd: number, rspObject: CCMCallbackObject, showTips: boolean = true, force: boolean = false): boolean {
         for (let i = 0; i < this._requests.length; ++i) {
             if (this._requests[i].rspCmd == rspCmd) {
-                console.log(`CCMNetNode requestUnique failed for ${rspCmd}`);
+                ccmLog.log(`CCMNetNode requestUnique failed for ${rspCmd}`);
                 return false;
             }
         }
@@ -293,7 +294,7 @@ export class CCMNetNode {
     /********************** 回调相关处理 *********************/
     public setResponseHandler(cmd: number, callback: CCMNetCallFunc, target?: any): boolean {
         if (callback == null) {
-            console.error(`CCMNetNode setResponseHandler error ${cmd}`);
+            ccmLog.error(`CCMNetNode setResponseHandler error ${cmd}`);
             return false;
         }
         this._listener[cmd] = [{ target, callback }];
@@ -302,7 +303,7 @@ export class CCMNetNode {
 
     public addResponseHandler(cmd: number, callback: CCMNetCallFunc, target?: any): boolean {
         if (callback == null) {
-            console.error(`CCMNetNode addResponseHandler error ${cmd}`);
+            ccmLog.error(`CCMNetNode addResponseHandler error ${cmd}`);
             return false;
         }
         let rspObject = { target, callback };
@@ -354,7 +355,7 @@ export class CCMNetNode {
         }
 
         this._receiveMsgTimer = setTimeout(() => {
-            console.warn("CCMNetNode receiveMsgTimer close socket!");
+            ccmLog.warn("CCMNetNode receiveMsgTimer close socket!");
             this._socket.close();
         }, this._receiveTime);
     }
@@ -365,7 +366,7 @@ export class CCMNetNode {
         }
 
         this._keepAliveTimer = setTimeout(() => {
-            console.log("CCMNetNode keepAliveTimer send Heartbeat")
+            ccmLog.log("CCMNetNode keepAliveTimer send Heartbeat")
             this.send(this._protocolHelper.getHeartbeat());
         }, this._heartTime);
     }

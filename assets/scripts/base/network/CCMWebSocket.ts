@@ -1,3 +1,4 @@
+import { ccmLog } from "../utils/CCMLog";
 import { CCMISocket, CCMNetData } from "./CCMNetInterface";
 
 /*
@@ -20,7 +21,7 @@ export class CCMWebSocket implements CCMISocket {
     connect(options: any) {
         if (this._ws) {
             if (this._ws.readyState === WebSocket.CONNECTING) {
-                console.log("websocket connecting, wait for a moment...")
+                ccmLog.log("websocket connecting, wait for a moment...")
                 return false;
             }
         }
