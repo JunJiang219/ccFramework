@@ -48,22 +48,22 @@ export default class CCMLog {
 
     public log(msg: string | any, ...subst: any[]) {
         if (window['CCMLogLv'] > CCMLogLevel.DEBUG) return;
-        cc.log(`[DEBUG][${this._getDate()}]`, msg, ...subst);
+        console.log(`[DEBUG][${this._getDate()}]`, msg, ...subst);
     }
 
     public info(msg: string | any, ...subst: any[]) {
         if (window['CCMLogLv'] > CCMLogLevel.INFO) return;
-        cc.log(`[INFO][${this._getDate()}]`, msg, ...subst);
+        console.info(`[INFO][${this._getDate()}]`, msg, ...subst);
     }
 
     public warn(msg: string | any, ...subst: any[]) {
         if (window['CCMLogLv'] > CCMLogLevel.WARN) return;
-        cc.warn(`[WARN][${this._getDate()}]`, msg, ...subst);
+        console.warn(`[WARN][${this._getDate()}]`, msg, ...subst);
     }
 
     public error(msg: string | any, ...subst: any[]) {
         if (window['CCMLogLv'] > CCMLogLevel.ERROR) return;
-        cc.error(`[ERROR][${this._getDate()}]`, msg, ...subst);
+        console.error(`[ERROR][${this._getDate()}]`, msg, ...subst);
     }
 }
 

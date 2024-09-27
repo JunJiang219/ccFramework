@@ -5,12 +5,14 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import protobuf = require("protobufjs");
 import { CCMLanguageType, i18nMgr } from "./base/i18n/CCMI18nManager";
 import { CCMIDialogOptions } from "./base/ui/CCMDialogView";
 import { tipsMgr } from "./base/ui/CCMTipsManager";
 import { uiMgr } from "./base/ui/CCMUIManager";
 import { ccmLog } from "./base/utils/CCMLog";
 import { UIID } from "./game/config/UIConfig";
+import { TestMessage } from "./game/proto/testMsg";
 
 const { ccclass, property } = cc._decorator;
 
@@ -91,9 +93,8 @@ export default class Test extends cc.Component {
     }
 
     test() {
-        uiMgr.open(UIID.ROOT1);
-        uiMgr.open(UIID.ROOT2);
-        uiMgr.closeAll();
+        ccmLog.log("protobuf.Writer: ", TestMessage.verify({ name: "test", age: "abc" }));
+        ccmLog.log("protobuf.Writer: ", protobuf.Writer.name);
     }
 
     releaseAll() {

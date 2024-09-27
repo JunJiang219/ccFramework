@@ -1,0 +1,14 @@
+{
+  "name": "ccframework",
+  "version": "1.0.0",
+  "description": "cocos creator framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "protobufjs": "^7.4.0"
+  }
+}
