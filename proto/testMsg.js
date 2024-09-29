@@ -17,6 +17,7 @@ $root.TestMessage = (function() {
      * @interface ITestMessage
      * @property {string|null} [name] TestMessage name
      * @property {number|null} [age] TestMessage age
+     * @property {number|Long|null} [id] TestMessage id
      */
 
     /**
@@ -51,6 +52,14 @@ $root.TestMessage = (function() {
     TestMessage.prototype.age = 0;
 
     /**
+     * TestMessage id.
+     * @member {number|Long} id
+     * @memberof TestMessage
+     * @instance
+     */
+    TestMessage.prototype.id = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
      * Creates a new TestMessage instance using the specified properties.
      * @function create
      * @memberof TestMessage
@@ -78,6 +87,8 @@ $root.TestMessage = (function() {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
         if (message.age != null && Object.hasOwnProperty.call(message, "age"))
             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.age);
+        if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+            writer.uint32(/* id 3, wireType 0 =*/24).int64(message.id);
         return writer;
     };
 
@@ -118,6 +129,10 @@ $root.TestMessage = (function() {
                 }
             case 2: {
                     message.age = reader.int32();
+                    break;
+                }
+            case 3: {
+                    message.id = reader.int64();
                     break;
                 }
             default:
@@ -161,6 +176,9 @@ $root.TestMessage = (function() {
         if (message.age != null && message.hasOwnProperty("age"))
             if (!$util.isInteger(message.age))
                 return "age: integer expected";
+        if (message.id != null && message.hasOwnProperty("id"))
+            if (!$util.isInteger(message.id) && !(message.id && $util.isInteger(message.id.low) && $util.isInteger(message.id.high)))
+                return "id: integer|Long expected";
         return null;
     };
 
@@ -180,6 +198,15 @@ $root.TestMessage = (function() {
             message.name = String(object.name);
         if (object.age != null)
             message.age = object.age | 0;
+        if (object.id != null)
+            if ($util.Long)
+                (message.id = $util.Long.fromValue(object.id)).unsigned = false;
+            else if (typeof object.id === "string")
+                message.id = parseInt(object.id, 10);
+            else if (typeof object.id === "number")
+                message.id = object.id;
+            else if (typeof object.id === "object")
+                message.id = new $util.LongBits(object.id.low >>> 0, object.id.high >>> 0).toNumber();
         return message;
     };
 
@@ -199,11 +226,21 @@ $root.TestMessage = (function() {
         if (options.defaults) {
             object.name = "";
             object.age = 0;
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.id = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.id = options.longs === String ? "0" : 0;
         }
         if (message.name != null && message.hasOwnProperty("name"))
             object.name = message.name;
         if (message.age != null && message.hasOwnProperty("age"))
             object.age = message.age;
+        if (message.id != null && message.hasOwnProperty("id"))
+            if (typeof message.id === "number")
+                object.id = options.longs === String ? String(message.id) : message.id;
+            else
+                object.id = options.longs === String ? $util.Long.prototype.toString.call(message.id) : options.longs === Number ? new $util.LongBits(message.id.low >>> 0, message.id.high >>> 0).toNumber() : message.id;
         return object;
     };
 

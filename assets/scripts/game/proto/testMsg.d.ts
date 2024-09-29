@@ -8,6 +8,9 @@ export interface ITestMessage {
 
     /** TestMessage age */
     age?: (number|null);
+
+    /** TestMessage id */
+    id?: (number|Long|null);
 }
 
 /** Represents a TestMessage. */
@@ -24,6 +27,9 @@ export class TestMessage implements ITestMessage {
 
     /** TestMessage age. */
     public age: number;
+
+    /** TestMessage id. */
+    public id: (number|Long);
 
     /**
      * Creates a new TestMessage instance using the specified properties.

@@ -6,6 +6,7 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 import protobuf = require("protobufjs");
+import Long = require("long");
 import { CCMLanguageType, i18nMgr } from "./base/i18n/CCMI18nManager";
 import { CCMIDialogOptions } from "./base/ui/CCMDialogView";
 import { tipsMgr } from "./base/ui/CCMTipsManager";
@@ -93,8 +94,13 @@ export default class Test extends cc.Component {
     }
 
     test() {
-        ccmLog.log("protobuf.Writer: ", TestMessage.verify({ name: "test", age: "abc" }));
-        ccmLog.log("protobuf.Writer: ", protobuf.Writer.name);
+        let msg = TestMessage.create({ name: "test", age: 18, id: 1234567890123 });
+        let buffer = TestMessage.encode(msg).finish();
+        let decodedMsg = TestMessage.decode(buffer);
+        ccmLog.log("msg: ", msg);
+        ccmLog.log("buffer: ", buffer);
+        ccmLog.log("decodedMsg: ", decodedMsg);
+        ccmLog.log("decodedMsg.id: ", (decodedMsg.id as Long).toNumber());
     }
 
     releaseAll() {
