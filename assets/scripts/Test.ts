@@ -13,7 +13,7 @@ import { tipsMgr } from "./base/ui/CCMTipsManager";
 import { uiMgr } from "./base/ui/CCMUIManager";
 import { ccmLog } from "./base/utils/CCMLog";
 import { UIID } from "./game/config/UIConfig";
-import { TestMessage } from "./game/proto/testMsg";
+import { MSG2 } from "./game/proto/BuffProto";
 
 const { ccclass, property } = cc._decorator;
 
@@ -94,13 +94,12 @@ export default class Test extends cc.Component {
     }
 
     test() {
-        let msg = TestMessage.create({ name: "test", age: 18, id: 1234567890123 });
-        let buffer = TestMessage.encode(msg).finish();
-        let decodedMsg = TestMessage.decode(buffer);
+        let msg = MSG2.create({ type: 1, msg: "hello world" });
+        let buffer = MSG2.encode(msg).finish();
+        let decodedMsg = MSG2.decode(buffer);
         ccmLog.log("msg: ", msg);
         ccmLog.log("buffer: ", buffer);
         ccmLog.log("decodedMsg: ", decodedMsg);
-        ccmLog.log("decodedMsg.id: ", (decodedMsg.id as Long).toNumber());
     }
 
     releaseAll() {

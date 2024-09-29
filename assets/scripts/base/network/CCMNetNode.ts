@@ -55,7 +55,7 @@ export class CCMNetNode {
     protected _reconnectTimer: any = null;                                  // 重连定时器
     protected _heartTime: number = 10000;                                   // 心跳间隔(ms)
     protected _receiveTime: number = 6000000;                               // 多久没收到数据断开(ms)
-    protected _reconnectTimeOut: number = 8000000;                           // 重连间隔(ms)
+    protected _reconnectTimeOut: number = 60000;                            // 重连间隔(ms)
     protected _requests: CCMRequestObject[] = Array<CCMRequestObject>();          // 请求列表
     protected _listener: { [key: number]: CCMCallbackObject[] } = {}           // 监听者列表
 

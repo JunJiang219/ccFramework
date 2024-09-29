@@ -1,0 +1,19 @@
+syntax="proto3";
+ 
+ message MSG2
+{
+ int32 type=1;
+ string msg=2;
+}
+ 
+message UserLogin
+{
+ int32 uid=1;
+ int32 channel=2;
+}
+ 
+ message HeartData
+{
+ int32 Data=1;
+}
+ 
