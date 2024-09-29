@@ -66,7 +66,8 @@ export class CCMNetNode {
         this._protocolHelper = protocol;
         this._networkTips = networkTips;
         this._callbackExecuter = execFunc ? execFunc : (callback: CCMCallbackObject, buffer: CCMNetData) => {
-            callback.callback.call(callback.target, 0, buffer);
+            let cmd = this._protocolHelper.getPackageId(buffer);
+            callback.callback.call(callback.target, cmd, buffer);
         }
     }
 
