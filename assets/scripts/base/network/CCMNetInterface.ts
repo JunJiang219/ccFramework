@@ -16,9 +16,9 @@ export interface CCMCallbackObject {
 
 // 请求对象
 export interface CCMRequestObject {
-    buffer: CCMNetData,            // 请求的Buffer
-    rspCmd: number,             // 等待响应指令
-    rspObject: CCMCallbackObject,  // 等待响应的回调对象
+    buffer: CCMNetData,             // 请求的Buffer
+    rspCmd: number,                 // 等待响应指令(0表示不需要响应, 从1开始)
+    rspObject: CCMCallbackObject,   // 等待响应的回调对象
 }
 
 // 协议辅助接口
