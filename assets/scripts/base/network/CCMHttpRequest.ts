@@ -85,7 +85,6 @@ export default class CCMHttpRequest {
                 xhr.send(reqInfo.data);
             };
 
-
             attemptRequest(0);
         });
     }

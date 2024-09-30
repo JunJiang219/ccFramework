@@ -14,6 +14,7 @@ import { uiMgr } from "./base/ui/CCMUIManager";
 import { ccmLog } from "./base/utils/CCMLog";
 import { UIID } from "./game/config/UIConfig";
 import { MSG2 } from "./game/proto/BuffProto";
+import CCMCryptoUtil from "./base/utils/CCMCryptoUtil";
 
 const { ccclass, property } = cc._decorator;
 
@@ -100,6 +101,17 @@ export default class Test extends cc.Component {
         ccmLog.log("msg: ", msg);
         ccmLog.log("buffer: ", buffer);
         ccmLog.log("decodedMsg: ", decodedMsg);
+
+
+        let encode = CCMCryptoUtil.encodeBase64("中文&english");
+        let decode = CCMCryptoUtil.decodeBase64(encode);
+        ccmLog.log("encode: ", encode);
+        ccmLog.log("decode: ", decode);
+
+        encode = CCMCryptoUtil.encodeXXTEA("中文&english", "BIGWIN@888!");
+        decode = CCMCryptoUtil.decodeXXTEA(encode, "BIGWIN@888!");
+        ccmLog.log("encode: ", encode);
+        ccmLog.log("decode: ", decode);
     }
 
     releaseAll() {
