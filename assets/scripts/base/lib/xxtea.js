@@ -451,8 +451,4 @@
         decryptFromBase64: decryptFromBase64
     };
 
-    // 只需添加以下导出语句
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = global.XXTEA;
-    }
 })(this || [eval][0]('this'));

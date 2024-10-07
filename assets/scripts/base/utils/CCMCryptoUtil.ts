@@ -2,7 +2,7 @@
  * 加解密工具类
  */
 
-import xxtea from "xxtea";
+declare const XXTEA: any;
 
 export default class CCMCryptoUtil {
     // 将字符串编码为 Base64
@@ -27,10 +27,10 @@ export default class CCMCryptoUtil {
     }
 
     public static encodeXXTEA(data: string, key: string): string {
-        return xxtea.encrypt(data, key);
+        return XXTEA.encrypt(data, key);
     }
 
     public static decodeXXTEA(data: string, key: string): string {
-        return xxtea.decrypt(data, key);
+        return XXTEA.decrypt(data, key);
     }
 }
