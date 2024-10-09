@@ -27,9 +27,9 @@ export default class CCMAudioManager {
     public get bgVolume() { return this._bgVolume; }
     public set bgVolume(value: number) {
         if (value <= 0) {
-            this._bgVolume = 0;
+            this._bgVolume = 0.0;
         } else if (value >= 1) {
-            this._bgVolume = 1;
+            this._bgVolume = 1.0;
         } else {
             this._bgVolume = value;
         }
@@ -44,9 +44,9 @@ export default class CCMAudioManager {
     public get effVolume() { return this._effVolume; }
     public set effVolume(value: number) {
         if (value <= 0) {
-            this._effVolume = 0;
+            this._effVolume = 0.0;
         } else if (value >= 1) {
-            this._effVolume = 1;
+            this._effVolume = 1.0;
         } else {
             this._effVolume = value;
         }
@@ -62,16 +62,6 @@ export default class CCMAudioManager {
     private _bgmBaseVolume: number = 1;
     private _effPlayMap: Map<number, CCMIAudioPlayOptions> = new Map();
 
-    // 设置背景音乐音量
-    public setBgVolume(volume: number) {
-        this._bgVolume = volume;
-    }
-
-    // 设置音效音量
-    public setEffVolume(volume: number) {
-        this._effVolume = volume;
-    }
-
     // 播放背景音乐，同一时间只能播放一首背景音乐
     public playBGM(name: string, options?: CCMIAudioPlayOptions) {
         this.stopBGM();
@@ -82,7 +72,7 @@ export default class CCMAudioManager {
                 return;
             }
 
-            this._bgmBaseVolume = options?.baseVolume || 1;
+            this._bgmBaseVolume = options?.baseVolume || 1.0;
             let loop = options?.loop || true;
             let volume = this._bgmBaseVolume * this._bgVolume;
             this._bgmId = cc.audioEngine.play(audio, loop, volume);
@@ -113,7 +103,7 @@ export default class CCMAudioManager {
         // TODO: 播放音效
         let saveOptions: CCMIAudioPlayOptions = {};
         saveOptions.loop = options?.loop || false;
-        saveOptions.baseVolume = options?.baseVolume || 1;
+        saveOptions.baseVolume = options?.baseVolume || 1.0;
         saveOptions.bundleName = options?.bundleName || "resources";
         saveOptions.audioName = name;
 
@@ -124,7 +114,7 @@ export default class CCMAudioManager {
             }
 
             let loop = saveOptions.loop;
-            let volume = (saveOptions.baseVolume || 1) * this._effVolume;
+            let volume = (saveOptions.baseVolume || 1.0) * this._effVolume;
             let effId = cc.audioEngine.play(audio, loop, volume);
             if (effId >= 0) {
                 this._effPlayMap.set(effId, options);

@@ -8,6 +8,7 @@ import { ProgressCallback } from "../res/CCMResLoader";
 // 界面层级id
 export enum CCMUILayerID {
     Game,           // 游戏界面层级
+    UI,             // UI界面层级
     Popup,          // 弹窗层级
     Dialog,         // 对话框层级
     Toast,          // 提示层级
