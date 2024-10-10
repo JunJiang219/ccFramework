@@ -2,10 +2,12 @@
  * 异步列表item
  */
 
+import { CCMResKeeper } from "../res/CCMResKeeper";
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class CCMListViewItem extends cc.Component {
+export default class CCMListViewItem extends CCMResKeeper {
 
     protected _index: number = 0;
     protected _data: any = null;
