@@ -25,6 +25,9 @@ export const ToastConfig: { [toastId: number]: CCMIToastConf } = {
 
 /** ------------------------------ UI Config --------------------------------- */
 export enum UIID {
+    LOGIN_REGISTER,
+
+    // 以下为测试用UI
     TEST,
     ROOT1,
     ROOT2,
@@ -32,6 +35,7 @@ export enum UIID {
 
 let baseZOrder_UI = 0;
 export const UIConfig: { [uiId: number]: CCMIUIConf } = {
+    [UIID.LOGIN_REGISTER]: { prefabPath: "prefabs/login_register/login_register", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: true },
     [UIID.TEST]: { prefabPath: "prefabs/test/test", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: false },
     [UIID.ROOT1]: { prefabPath: "prefabs/test/root1", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: false },
     [UIID.ROOT2]: { prefabPath: "prefabs/test/root2", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: false },

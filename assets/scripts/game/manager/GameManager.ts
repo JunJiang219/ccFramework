@@ -31,7 +31,7 @@ export default class GameManager extends cc.Component {
         tipsMgr.initToastConf(ToastConfig);
         i18nMgr.setLanguage(CCMLanguageType.EN, (isSuccess: boolean, curLang: string) => {
             ccmLog.info(`setLanguage success: ${isSuccess}, Current language: ${curLang}`);
-            if (isSuccess) uiMgr.open(UIID.TEST);
+            if (isSuccess) uiMgr.open(UIID.LOGIN_REGISTER);
         });
     }
 
