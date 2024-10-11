@@ -2,7 +2,7 @@
  * 登录注册界面
  */
 
-import { CCMIUIArgs } from "../../base/ui/CCMUIManager";
+import { CCMIUIArgs, uiMgr } from "../../base/ui/CCMUIManager";
 import CCMUIView from "../../base/ui/CCMUIView";
 import { ccmLog } from "../../base/utils/CCMLog";
 
@@ -49,6 +49,11 @@ export default class LoginRegisterView extends CCMUIView {
 
     @property(cc.Toggle)
     register_passwordVisibleBtn: cc.Toggle = null;
+
+    public onOpen(fromUIID: number, uiArgs: CCMIUIArgs): void {
+        let tabId = uiArgs.userOptions.tabId;
+        this.selectTab(tabId);
+    }
 
     private onTabSelected(tab: cc.Toggle) {
         switch (tab.node.name) {
@@ -141,8 +146,12 @@ export default class LoginRegisterView extends CCMUIView {
         this.changePasswordVisible(tabId);
     }
 
-    public onOpen(fromUIID: number, uiArgs: CCMIUIArgs): void {
-        let tabId = uiArgs.userOptions.tabId;
-        this.selectTab(tabId);
+    private onGuestBtnClick(event: cc.Event.EventTouch, customData: string) {
+        // TODO: 实现游客登录逻辑
+        ccmLog.log("onGuestBtnClick");
+    }
+
+    private onCloseBtnClick(event: cc.Event.EventTouch, customData: string) {
+        uiMgr.close(this);
     }
 }

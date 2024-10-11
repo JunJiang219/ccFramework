@@ -1,4 +1,15 @@
 {
     "nt_hello": "Hello, world!",
-    "rt_hello": "<color=#00ff00>Hello, </c><color=#0fffff>world!</color>"
+    "rt_hello": "<color=#00ff00>Hello, </c><color=#0fffff>world!</color>",
+    "t_lr_login": "Login",
+    "t_lr_register": "Register",
+    "t_lr_phone": "Phone",
+    "t_lr_remember": "Remember me",
+    "t_lr_forgetPwd": "Forget password?",
+    "t_lr_termsOfService": "<color=#ffffff>By accessing the site. I confirm that I am 18 years old and I have read the </c><color=#6751eb><u><on click=\"openTermsOfService\">Terms of Service</on></u></color>",
+    "t_lr_signUpWith": "Or sign up with",
+    "t_lr_haveAccount": "Don't you have an account?",
+    "t_lr_signUp": "Sign Up",
+    "t_lr_phoneNum": "Phone number",
+    "t_lr_pwd": "Password"
 }

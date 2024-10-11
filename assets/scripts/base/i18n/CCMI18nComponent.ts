@@ -44,7 +44,7 @@ export class CCMI18nSprite {
 @ccclass
 @executeInEditMode
 @disallowMultiple
-@menu("多语言/i18nComponent")
+@menu("自定义/CCMI18nComponent")
 export default class CCMI18nComponent extends cc.Component {
 
     @property([CCMI18nLabel])
