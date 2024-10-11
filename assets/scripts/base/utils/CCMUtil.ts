@@ -2,6 +2,8 @@
  * 通用工具类
  */
 
+import { default as FingerprintJS } from '@fingerprintjs/fingerprintjs';
+
 export default class CCMUtil {
 
     /**
@@ -46,5 +48,22 @@ export default class CCMUtil {
     // 判断值是否在枚举中
     public static isValueInEnum(value: any, enumObj: any) {
         return Object.values(enumObj).includes(value);
+    }
+
+    /**
+     * 获取设备唯一标识
+     * @param storageKey 本地存储的 key
+     * @returns 
+     */
+    public static async getDeviceId(storageKey?: string): Promise<string> {
+        let deviceId = "";
+        if (undefined != storageKey) deviceId = cc.sys.localStorage.getItem(storageKey);
+        if (!deviceId) {
+            const result = await FingerprintJS.load().then(fp => fp.get());
+            deviceId = result.visitorId;
+            if (undefined != storageKey) cc.sys.localStorage.setItem(storageKey, deviceId);
+        }
+
+        return Promise.resolve(deviceId);
     }
 }

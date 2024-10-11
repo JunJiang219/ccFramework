@@ -45,44 +45,46 @@ export default class CCMI18nManager {
 
     private _compSet: Set<CCMI18nComponent> = new Set();    // i18n组件集合
 
-    public setLanguage(lang: string, finishCb?: (isSuccess: boolean, curLang: string) => void) {
-        if (CCMI18nState.CONFIG_LOADING == this._state) {
-            ccmLog.warn("i18n config is loading, please wait...");
-            finishCb && finishCb(false, this._language);
-            return;
-        }
-        let langSupport = CCMUtil.isValueInEnum(lang, CCMLanguageType);
-        let oldLang = this._language;
-        let newLang = langSupport ? lang : CCMLanguageType.EN;
-        if (oldLang === newLang) {
-            finishCb && finishCb(false, this._language);
-            return;
-        }
-        this._language = newLang;
-
-        let resArr: string[] = [];
-        resArr.push(`i18n/${this._language}/configs/text_${this._language}`);
-        resArr.push(`i18n/${this._language}/configs/texture_${this._language}`);
-        this._state = CCMI18nState.CONFIG_LOADING;
-        resLoader.load(resArr, cc.JsonAsset, (err: Error, assets: cc.JsonAsset[]) => {
-            if (err) {
-                this._language = oldLang;
-                this._state = CCMI18nState.CONFIG_LOAD_FAILED;
-                ccmLog.error(err);
-                finishCb && finishCb(false, this._language);
+    public async setLanguage(lang: string): Promise<{ isSuccess: boolean, curLang: string }> {
+        return new Promise((resolve, reject) => {
+            if (CCMI18nState.CONFIG_LOADING == this._state) {
+                ccmLog.warn("i18n config is loading, please wait...");
+                reject({ isSuccess: false, curLang: this._language });
                 return;
             }
+            let langSupport = CCMUtil.isValueInEnum(lang, CCMLanguageType);
+            let oldLang = this._language;
+            let newLang = langSupport ? lang : CCMLanguageType.EN;
+            if (oldLang === newLang) {
+                reject({ isSuccess: false, curLang: this._language });
+                return;
+            }
+            this._language = newLang;
 
-            // 长久保存，防止意外释放
-            CCMDefaultKeeper.inst.cacheAsset(assets[0]);
-            CCMDefaultKeeper.inst.cacheAsset(assets[1]);
+            let resArr: string[] = [];
+            resArr.push(`i18n/${this._language}/configs/text_${this._language}`);
+            resArr.push(`i18n/${this._language}/configs/texture_${this._language}`);
+            this._state = CCMI18nState.CONFIG_LOADING;
+            resLoader.load(resArr, cc.JsonAsset, (err: Error, assets: cc.JsonAsset[]) => {
+                if (err) {
+                    this._language = oldLang;
+                    this._state = CCMI18nState.CONFIG_LOAD_FAILED;
+                    ccmLog.error(err);
+                    reject({ isSuccess: false, curLang: this._language });
+                    return;
+                }
 
-            this._textConf.set(this._language, assets[0].json);
-            this._textureConf.set(this._language, assets[1].json);
-            this._state = CCMI18nState.CONFIG_LOAD_SUCCESS;
-            this.reloadAllComponent();
-            evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._language);
-            finishCb && finishCb(true, this._language);
+                // 长久保存，防止意外释放
+                CCMDefaultKeeper.inst.cacheAsset(assets[0]);
+                CCMDefaultKeeper.inst.cacheAsset(assets[1]);
+
+                this._textConf.set(this._language, assets[0].json);
+                this._textureConf.set(this._language, assets[1].json);
+                this._state = CCMI18nState.CONFIG_LOAD_SUCCESS;
+                this.reloadAllComponent();
+                evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._language);
+                resolve({ isSuccess: true, curLang: this._language });
+            });
         });
     }
 

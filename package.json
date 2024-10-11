@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^4.5.0",
     "protobufjs": "^7.4.0"
   }
 }
