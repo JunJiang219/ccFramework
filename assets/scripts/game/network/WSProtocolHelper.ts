@@ -4,7 +4,7 @@
 
 import { CCMIProtocolHelper, CCMNetData } from "../../base/network/CCMNetInterface";
 import { ccmLog } from "../../base/utils/CCMLog";
-import { WS_CMD_CLASS } from "../config/WSCmdDefine";
+import { WS_CMD_CLASS } from "../config/WSDefine";
 
 const mSendByteMap: Uint8Array = new Uint8Array([
     0xad, 0xcd, 0x41, 0xa5, 0xd6, 0x4a, 0xa1, 0xc8, 0x9b, 0xd5, 0x10, 0x24, 0xe3, 0x8f, 0xdb, 0xdf,

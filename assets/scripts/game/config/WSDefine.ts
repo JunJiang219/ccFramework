@@ -1,3 +1,7 @@
+/**
+ * websocket 相关定义
+ */
+
 import { HeartData, MSG2, UserLogin } from "../proto/BuffProto";
 
 export const enum WS_CMD {
