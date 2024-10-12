@@ -40,7 +40,7 @@
       }
     ],
     "_prefab": {
-      "__id__": 139
+      "__id__": 140
     },
     "_opacity": 255,
     "_color": {
@@ -848,15 +848,15 @@
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.5,
+      "x": 0,
       "y": 0.5
     },
     "_trs": {
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -248.527,
-        487.214,
+        -313,
+        487,
         0,
         0,
         0,
@@ -3725,7 +3725,7 @@
         1,
         1,
         1,
-        1
+        0
       ]
     },
     "_eulerAngles": {
@@ -3934,8 +3934,8 @@
     "clickEvents": [],
     "_N$interactable": true,
     "_N$enableAutoGrayEffect": false,
-    "_N$transition": 2,
-    "transition": 2,
+    "_N$transition": 3,
+    "transition": 3,
     "_N$normalColor": {
       "__type__": "cc.Color",
       "r": 230,
@@ -5043,7 +5043,11 @@
         "__id__": 138
       }
     ],
-    "richTexts": [],
+    "richTexts": [
+      {
+        "__id__": 139
+      }
+    ],
     "sprites": [],
     "_id": ""
   },
@@ -5052,42 +5056,49 @@
     "target": {
       "__id__": 8
     },
-    "key": "t_lr_title"
+    "key": "lr_title"
   },
   {
     "__type__": "CCMI18nLabel",
     "target": {
       "__id__": 21
     },
-    "key": "t_lr_phone"
+    "key": "lr_phone"
   },
   {
     "__type__": "CCMI18nLabel",
     "target": {
       "__id__": 89
     },
-    "key": "t_lr_remember"
+    "key": "lr_remember"
   },
   {
     "__type__": "CCMI18nLabel",
     "target": {
       "__id__": 97
     },
-    "key": "t_lr_getOtp"
+    "key": "lr_getOtp"
   },
   {
     "__type__": "CCMI18nLabel",
     "target": {
       "__id__": 107
     },
-    "key": "t_lr_title"
+    "key": "lr_title"
   },
   {
     "__type__": "CCMI18nLabel",
     "target": {
       "__id__": 119
     },
-    "key": "t_lr_signUpWith"
+    "key": "lr_signUpWith"
+  },
+  {
+    "__type__": "CCMI18nRichText",
+    "target": {
+      "__id__": 115
+    },
+    "key": "lr_termsOfService"
   },
   {
     "__type__": "cc.PrefabInfo",

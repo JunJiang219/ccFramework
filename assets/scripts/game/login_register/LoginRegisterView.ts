@@ -54,8 +54,8 @@ export default class LoginRegisterView extends CCMUIView {
 
     // 更新余下多语言
     private updateLanguage() {
-        this.phoneNumEditBox.placeholder = i18nMgr.getTextValue("t_lr_phoneNum");
-        this.passwordEditBox.placeholder = i18nMgr.getTextValue("t_lr_pwd");
+        this.phoneNumEditBox.placeholder = i18nMgr.getTextValue("lr_phoneNum");
+        this.passwordEditBox.placeholder = i18nMgr.getTextValue("lr_pwd");
     }
 
     private clearPhoneNum() {

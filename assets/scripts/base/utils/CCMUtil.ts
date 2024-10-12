@@ -23,7 +23,7 @@ export default class CCMUtil {
     }
 
     // 解析url参数
-    public static urlParse(url: string) {
+    public static urlParse(url: string): any {
         let params = {};
         if (!url) {
             return params;

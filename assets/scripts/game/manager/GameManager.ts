@@ -31,9 +31,18 @@ export default class GameManager extends cc.Component {
         uiMgr.init();
         tipsMgr.initDialogConf(DialogConfig);
         tipsMgr.initToastConf(ToastConfig);
-        const deviceId = await CCMUtil.getDeviceId(STORAGE_KEY.USER_DEVICEID);
+
+        // 解析url参数
+        let url = window.location.href;
+        let urlParams = CCMUtil.urlParse(url);
+
+        // 使用 Promise.all 来并行执行多个异步操作
+        const [deviceId, languageResult] = await Promise.all([
+            CCMUtil.getDeviceId(STORAGE_KEY.USER_DEVICEID),
+            i18nMgr.setLanguage(urlParams.lang || CCMLanguageType.EN)
+        ]);
+
         ccmLog.info(`deviceId: ${deviceId}`);
-        const languageResult = await i18nMgr.setLanguage(CCMLanguageType.EN);
         ccmLog.info(`setLanguage success: ${languageResult.isSuccess}, Current language: ${languageResult.curLang}`);
 
         // 打开登录界面
