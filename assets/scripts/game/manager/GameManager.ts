@@ -8,6 +8,7 @@ import { tipsMgr } from "../../base/ui/CCMTipsManager";
 import { CCMIUIArgs, uiMgr } from "../../base/ui/CCMUIManager";
 import { ccmLog } from "../../base/utils/CCMLog";
 import CCMUtil from "../../base/utils/CCMUtil";
+import { URL_PARAM } from "../config/HttpDefine";
 import { STORAGE_KEY } from "../config/StorageDefine";
 import { DialogConfig, ToastConfig, UIConfig, UIID } from "../config/UIConfig";
 
@@ -39,7 +40,7 @@ export default class GameManager extends cc.Component {
         // 使用 Promise.all 来并行执行多个异步操作
         const [deviceId, languageResult] = await Promise.all([
             CCMUtil.getDeviceId(STORAGE_KEY.USER_DEVICEID),
-            i18nMgr.setLanguage(urlParams.lang || CCMLanguageType.EN)
+            i18nMgr.setLanguage(urlParams[URL_PARAM.LANGUAGE])
         ]);
 
         ccmLog.info(`deviceId: ${deviceId}`);

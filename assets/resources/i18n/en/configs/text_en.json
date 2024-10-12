@@ -1,6 +1,4 @@
 {
-    "nt_hello": "Hello, world!",
-    "rt_hello": "<color=#00ff00>Hello, </c><color=#0fffff>world!</color>",
     "lr_title": "Login",
     "lr_phone": "Phone",
     "lr_remember": "Remember me",
