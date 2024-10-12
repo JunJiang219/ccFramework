@@ -92,7 +92,6 @@ export default class CCMI18nManager {
     public getTextValue(key: string, lang?: string) {
         let checkLang = lang || this._language;
         let jsonObj = this._textConf.get(checkLang);
-        if (!jsonObj) return `language_${checkLang}`;
         return jsonObj[key] || `${checkLang}_${key}`;
     }
 
@@ -100,7 +99,6 @@ export default class CCMI18nManager {
     public getTextureValue(key: string, lang?: string) {
         let checkLang = lang || this._language;
         let jsonObj = this._textureConf.get(checkLang);
-        if (!jsonObj) return `language_${checkLang}`;
         return jsonObj[key] || `${checkLang}_${key}`;
     }
 

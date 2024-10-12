@@ -10,7 +10,6 @@ import { ccmLog } from "../../base/utils/CCMLog";
 import CCMUtil from "../../base/utils/CCMUtil";
 import { STORAGE_KEY } from "../config/StorageDefine";
 import { DialogConfig, ToastConfig, UIConfig, UIID } from "../config/UIConfig";
-import { LoginRegisterTab } from "../login_register/LoginRegisterView";
 
 const { ccclass, property } = cc._decorator;
 
@@ -38,9 +37,7 @@ export default class GameManager extends cc.Component {
         ccmLog.info(`setLanguage success: ${languageResult.isSuccess}, Current language: ${languageResult.curLang}`);
 
         // 打开登录界面
-        let uiArgs: CCMIUIArgs = {};
-        uiArgs.userOptions = { tabId: LoginRegisterTab.LOGIN };
-        uiMgr.open(UIID.LOGIN_REGISTER, uiArgs);
+        uiMgr.open(UIID.LOGIN_REGISTER);
 
         return Promise.resolve();
     }
