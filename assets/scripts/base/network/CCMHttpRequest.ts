@@ -4,6 +4,13 @@
 
 import { ccmLog } from "../utils/CCMLog";
 
+// 请求方法枚举
+export const enum CCMHttpMethod {
+    GET = "GET",
+    POST = "POST"
+}
+
+// 请求信息接口
 export interface CCMIHttpReqInfo {
     method: string;                         // 请求方法
     url: string;                            // 请求地址
@@ -35,9 +42,9 @@ export default class CCMHttpRequest {
         return CCMHttpRequest._instance;
     }
 
-    public send(reqInfo: CCMIHttpReqInfo): Promise<any> {
+    public async send(reqInfo: CCMIHttpReqInfo): Promise<any> {
         return new Promise((resolve, reject) => {
-            if (!reqInfo.timeout) reqInfo.timeout = 5000;               // 默认超时时间为5秒
+            if (!reqInfo.timeout) reqInfo.timeout = 10000;              // 默认超时时间为10秒
             if (!reqInfo.timeoutRetry) reqInfo.timeoutRetry = 0;        // 默认不重试
             if (!reqInfo.retryInterval) reqInfo.retryInterval = 1000;   // 默认重试间隔为1秒
             if (!reqInfo.reqStatus) reqInfo.reqStatus = CCMHttpReqStatus.UNSTART;

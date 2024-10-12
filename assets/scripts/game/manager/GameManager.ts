@@ -11,6 +11,7 @@ import CCMUtil from "../../base/utils/CCMUtil";
 import { URL_PARAM } from "../config/HttpDefine";
 import { STORAGE_KEY } from "../config/StorageDefine";
 import { DialogConfig, ToastConfig, UIConfig, UIID } from "../config/UIConfig";
+import { gameData } from "../data/GameData";
 
 const { ccclass, property } = cc._decorator;
 
@@ -43,6 +44,7 @@ export default class GameManager extends cc.Component {
             i18nMgr.setLanguage(urlParams[URL_PARAM.LANGUAGE])
         ]);
 
+        gameData.deviceId = deviceId;
         ccmLog.info(`deviceId: ${deviceId}`);
         ccmLog.info(`setLanguage success: ${languageResult.isSuccess}, Current language: ${languageResult.curLang}`);
 

@@ -8,6 +8,7 @@ import { i18nMgr } from "../../base/i18n/CCMI18nManager";
 import { CCMIUIArgs, uiMgr } from "../../base/ui/CCMUIManager";
 import CCMUIView from "../../base/ui/CCMUIView";
 import { ccmLog } from "../../base/utils/CCMLog";
+import { httpHelper } from "../network/HttpProtocolHelper";
 
 const { ccclass, property } = cc._decorator;
 
