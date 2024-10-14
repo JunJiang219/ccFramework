@@ -2,6 +2,7 @@
  * 游戏管理器
  */
 
+import { preventOperate } from "../../base/common/CCMPreventOperate";
 import { CCMLanguageType, i18nMgr } from "../../base/i18n/CCMI18nManager";
 import { resMgr } from "../../base/res/CCMResManager";
 import { tipsMgr } from "../../base/ui/CCMTipsManager";
@@ -33,6 +34,7 @@ export default class GameManager extends cc.Component {
         uiMgr.init();
         tipsMgr.initDialogConf(DialogConfig);
         tipsMgr.initToastConf(ToastConfig);
+        preventOperate.init();
 
         // 解析url参数
         let url = window.location.href;

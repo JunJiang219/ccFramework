@@ -30,9 +30,6 @@ export class GameData {
     public deviceId: string = "";           // 设备id
     public version: string = "1.0";         // 版本号
 
-    // url域名后续地址
-    public subUrl_login: string = "script/"
-
     public init() {
         // 初始化数据
     }

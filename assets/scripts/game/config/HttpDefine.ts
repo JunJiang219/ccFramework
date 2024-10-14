@@ -67,3 +67,7 @@ export interface Http_BaseLogin {
     demo?: string;
     version?: string;
 }
+
+export const enum HTTP_SUB_URL {
+    LOGIN = "script/",
+}

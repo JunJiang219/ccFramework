@@ -15,6 +15,9 @@ export default class CCMDefaultKeeper extends CCMResKeeper {
     @property(cc.Prefab)
     preventPrefab: cc.Prefab = null;
 
+    @property(cc.Prefab)
+    preventOperatePrefab: cc.Prefab = null;
+
     onLoad() {
         if (CCMDefaultKeeper._instance) return;
         CCMDefaultKeeper._instance = this;

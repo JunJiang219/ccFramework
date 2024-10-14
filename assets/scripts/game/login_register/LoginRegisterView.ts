@@ -70,6 +70,15 @@ export default class LoginRegisterView extends CCMUIView {
     private onGuestBtnClick(event: cc.Event.EventTouch, customData: string) {
         // TODO: 实现游客登录逻辑
         ccmLog.log("onGuestBtnClick");
+        httpHelper.sendGuestLogin()
+            .then((res) => {
+                ccmLog.log("onGuestBtnClick res", res);
+                // uiMgr.close(this);
+            })
+            .catch((err) => {
+                ccmLog.error("onGuestBtnClick err", err);
+            });
+
     }
 
     private onCloseBtnClick(event: cc.Event.EventTouch, customData: string) {

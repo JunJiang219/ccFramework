@@ -2,10 +2,9 @@
  * http协议辅助类
  */
 
-import { CCMHttpMethod, httpReq } from "../../base/network/CCMHttpRequest";
+import { CCMHttpMethod, CCMIHttpReqInfo, httpReq } from "../../base/network/CCMHttpRequest";
 import CCMCryptoUtil from "../../base/utils/CCMCryptoUtil";
-import CCMUtil from "../../base/utils/CCMUtil";
-import { GAME_CHANNEL_TYPE, GAME_DEMO_TYPE, GAME_LID_TYPE, GAME_SID_TYPE, Http_BaseLogin } from "../config/HttpDefine";
+import { GAME_CHANNEL_TYPE, GAME_DEMO_TYPE, GAME_LID_TYPE, GAME_SID_TYPE, Http_BaseLogin, HTTP_SUB_URL } from "../config/HttpDefine";
 import { gameData, GameEnv } from "../data/GameData";
 import { myUserData } from "../data/UserData";
 
@@ -55,13 +54,14 @@ export default class HttpProtocolHelper {
         msgObj.version = gameData.version;
 
         let encodeMsg = this.encodeMsgObj(msgObj);
-        let url = gameData.getBaseApiUrl() + gameData.subUrl_login + CONNECT_STR + encodeMsg;
+        let url = gameData.getBaseApiUrl() + HTTP_SUB_URL.LOGIN;
+        let formData = new FormData();
+        formData.append("formal_p", encodeMsg);
+
         let reqInfo: CCMIHttpReqInfo = {
-            method: CCMHttpMethod.GET,
+            method: CCMHttpMethod.POST,
             url: url,
-            Headers: {
-                "Content-Type": "application/json"
-            }
+            data: formData
         };
 
         return httpReq.send(reqInfo);

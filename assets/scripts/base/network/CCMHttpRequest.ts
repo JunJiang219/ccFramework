@@ -2,6 +2,7 @@
  * http消息请求类
  */
 
+import { preventOperate } from "../common/CCMPreventOperate";
 import { ccmLog } from "../utils/CCMLog";
 
 // 请求方法枚举
@@ -14,7 +15,7 @@ export const enum CCMHttpMethod {
 export interface CCMIHttpReqInfo {
     method: string;                         // 请求方法
     url: string;                            // 请求地址
-    headers: { [key: string]: string };     // 请求头
+    headers?: { [key: string]: string };    // 请求头
     data?: any;                             // 请求数据
     timeout?: number;                       // 请求超时时间（单位：毫秒）
     timeoutRetry?: number;                  // 超时重试次数
@@ -65,6 +66,7 @@ export default class CCMHttpRequest {
 
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4) {
+                        preventOperate.enableOperate();
                         if (xhr.status >= 200 && xhr.status < 300) {
                             reqInfo.reqStatus = CCMHttpReqStatus.SUCCESS;
                             resolve({ xhr, reqInfo });
@@ -84,6 +86,7 @@ export default class CCMHttpRequest {
                         }, reqInfo.retryInterval);
                     } else {
                         ccmLog.log('请求超时，重试次数已耗尽');
+                        preventOperate.enableOperate();
                         reqInfo.reqStatus = CCMHttpReqStatus.TIMEOUT;
                         reject({ xhr, reqInfo });
                     }
@@ -92,6 +95,7 @@ export default class CCMHttpRequest {
                 xhr.send(reqInfo.data);
             };
 
+            preventOperate.disableOperate();
             attemptRequest(0);
         });
     }
