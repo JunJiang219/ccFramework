@@ -4,6 +4,7 @@
 
 import { CCMHttpMethod, CCMIHttpReqInfo, httpReq } from "../../base/network/CCMHttpRequest";
 import CCMCryptoUtil from "../../base/utils/CCMCryptoUtil";
+import { ccmLog } from "../../base/utils/CCMLog";
 import { GAME_CHANNEL_TYPE, GAME_DEMO_TYPE, GAME_LID_TYPE, GAME_SID_TYPE, Http_BaseLogin, HTTP_SUB_URL } from "../config/HttpDefine";
 import { gameData, GameEnv } from "../data/GameData";
 import { myUserData } from "../data/UserData";
@@ -29,10 +30,13 @@ export default class HttpProtocolHelper {
         return msgStep3;
     }
 
-    private decodeMsgStr(msgStr: string) {
+    public decodeMsgStr(msgStr: string) {
         let msgStep1 = CCMCryptoUtil.decodeBase64(msgStr);
+        ccmLog.log("decodeMsgStr msgStep1:", msgStep1);
         let msgStep2 = CCMCryptoUtil.decodeXXTEA(msgStep1, gameData.getXxteaKey());
+        ccmLog.log("decodeMsgStr msgStep2:", msgStep2);
         let msgStep3 = JSON.parse(msgStep2);
+        ccmLog.log("decodeMsgStr msgStep3:", msgStep3);
 
         return msgStep3;
     }
@@ -54,6 +58,7 @@ export default class HttpProtocolHelper {
         msgObj.version = gameData.version;
 
         let encodeMsg = this.encodeMsgObj(msgObj);
+        ccmLog.log("sendGuestLogin encodeMsg:", encodeMsg);
         let url = gameData.getBaseApiUrl() + HTTP_SUB_URL.LOGIN;
         let formData = new FormData();
         formData.append("formal_p", encodeMsg);

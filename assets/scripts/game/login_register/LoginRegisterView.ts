@@ -7,6 +7,7 @@ import { CCMEvent } from "../../base/config/CCMEvent";
 import { i18nMgr } from "../../base/i18n/CCMI18nManager";
 import { CCMIUIArgs, uiMgr } from "../../base/ui/CCMUIManager";
 import CCMUIView from "../../base/ui/CCMUIView";
+import CCMCryptoUtil from "../../base/utils/CCMCryptoUtil";
 import { ccmLog } from "../../base/utils/CCMLog";
 import { httpHelper } from "../network/HttpProtocolHelper";
 
@@ -73,12 +74,10 @@ export default class LoginRegisterView extends CCMUIView {
         httpHelper.sendGuestLogin()
             .then((res) => {
                 ccmLog.log("onGuestBtnClick res", res);
-                // uiMgr.close(this);
             })
             .catch((err) => {
                 ccmLog.error("onGuestBtnClick err", err);
             });
-
     }
 
     private onCloseBtnClick(event: cc.Event.EventTouch, customData: string) {
