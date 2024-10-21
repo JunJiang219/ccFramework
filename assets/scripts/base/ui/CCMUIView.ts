@@ -4,6 +4,7 @@
 
 import { CCMResKeeper } from "../res/CCMResKeeper";
 import { ProgressCallback } from "../res/CCMResLoader";
+import { CCMIUIInfo } from "./CCMUIManager";
 
 // 界面层级id
 export enum CCMUILayerID {
@@ -15,6 +16,13 @@ export enum CCMUILayerID {
     Loading,        // 加载层级
     Top,            // 置顶层级
     Num,            // 层级数量
+}
+
+// UI显示类型
+export enum CCMUIShowType {
+    UISingle,           // 单界面显示，其下界面不显示，性能较好
+    UIAddition,         // 叠加显示，性能较差
+    UIIndependent,      // 独立界面，其显示隐藏不影响其它界面，也不被其它界面影响
 }
 
 const UI_CACHE_TIME = 180; // 界面默认缓存时间(单位：秒)
@@ -61,10 +69,10 @@ export default class CCMUIView extends CCMResKeeper {
 
     /**
      * 当界面被打开时回调，每次调用 open 时回调
-     * @param fromUIID 从哪个UI打开的
+     * @param fromUIInfo 从哪个UI打开的
      * @param args 可变参数
      */
-    public onOpen(fromUIID: number, ...args: any[]): void { }
+    public onOpen(fromUIInfo: Readonly<CCMIUIInfo>, ...args: any[]): void { }
 
     /**
      * 每次界面Open动画播放完毕时回调
@@ -79,8 +87,8 @@ export default class CCMUIView extends CCMResKeeper {
 
     /**
      * 当界面被置顶时回调，open 时并不会回调该函数
-     * @param preUIID 前一个ui
+     * @param preUIInfo 前一个ui
      * @param args 可变参数，
      */
-    public onTop(preUIID: number, ...args: any[]): void { }
+    public onTop(preUIInfo: Readonly<CCMIUIInfo>, ...args: any[]): void { }
 }

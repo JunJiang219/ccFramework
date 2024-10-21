@@ -288,6 +288,9 @@
       "__id__": 2
     },
     "_enabled": true,
+    "pureWhiteSpf": {
+      "__uuid__": "410fb916-8721-4663-bab8-34397391ace7"
+    },
     "preventPrefab": {
       "__uuid__": "05da481b-b6f0-4807-ae0b-43f07a4f56b7"
     },

@@ -1,6 +1,6 @@
 import { CCMIDialogConf, CCMIToastConf } from "../../base/ui/CCMTipsManager";
 import { CCMIUIConf } from "../../base/ui/CCMUIManager";
-import { CCMUILayerID } from "../../base/ui/CCMUIView";
+import { CCMUILayerID, CCMUIShowType } from "../../base/ui/CCMUIView";
 
 /** ------------------------------ Dialog Config ----------------------------- */
 export enum DIALOGID {
@@ -35,9 +35,9 @@ export enum UIID {
 
 let baseZOrder_UI = 0;
 export const UIConfig: { [uiId: number]: CCMIUIConf } = {
-    [UIID.LOGIN_REGISTER]: { prefabPath: "prefabs/login_register/login_register", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: true },
-    [UIID.TEST]: { prefabPath: "prefabs/test/test", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: false },
-    [UIID.ROOT1]: { prefabPath: "prefabs/test/root1", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: false },
-    [UIID.ROOT2]: { prefabPath: "prefabs/test/root2", layerId: CCMUILayerID.UI, zOrder: ++baseZOrder_UI, preventTouch: false },
+    [UIID.LOGIN_REGISTER]: { prefabPath: "prefabs/login_register/login_register", layerId: CCMUILayerID.UI, showType: CCMUIShowType.UIAddition, preventTouch: true },
+    [UIID.TEST]: { prefabPath: "prefabs/test/test", layerId: CCMUILayerID.UI, showType: CCMUIShowType.UIAddition, preventTouch: false },
+    [UIID.ROOT1]: { prefabPath: "prefabs/test/root1", layerId: CCMUILayerID.UI, showType: CCMUIShowType.UIAddition, preventTouch: false },
+    [UIID.ROOT2]: { prefabPath: "prefabs/test/root2", layerId: CCMUILayerID.UI, showType: CCMUIShowType.UIAddition, preventTouch: false },
 };
 /** ------------------------------ UI Config --------------------------------- */

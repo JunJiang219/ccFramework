@@ -12,6 +12,9 @@ export default class CCMDefaultKeeper extends CCMResKeeper {
     private static _instance: CCMDefaultKeeper = null;
     public static get inst() { return CCMDefaultKeeper._instance; }
 
+    @property(cc.SpriteFrame)
+    pureWhiteSpf: cc.SpriteFrame = null;
+
     @property(cc.Prefab)
     preventPrefab: cc.Prefab = null;
 
