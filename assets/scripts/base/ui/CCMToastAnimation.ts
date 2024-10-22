@@ -2,7 +2,7 @@
  * toast 默认动画组件
  */
 
-import CCMUIAnimation, { CCMUIAniName } from "./CCMUIAnimation";
+import CCMUIAnimation from "./CCMUIAnimation";
 
 const { ccclass, property } = cc._decorator;
 
@@ -18,16 +18,13 @@ export default class CCMToastAnimation extends CCMUIAnimation {
         if (aniImmediately) {
             defaultAniNode.setPosition(endPos.x, endPos.y);
             defaultAniNode.active = true;
-            this._curAniName = CCMUIAniName.UINone;
             finishCb();
         } else {
             defaultAniNode.setPosition(beginPos.x, beginPos.y);
             defaultAniNode.active = true;
-            this._curAniName = CCMUIAniName.UIOpen;
             cc.tween(defaultAniNode)
                 .to(0.5, { x: endPos.x, y: endPos.y }, { easing: "bounceOut" })
                 .call(() => {
-                    this._curAniName = CCMUIAniName.UINone;
                     finishCb();
                 })
                 .start();
@@ -43,16 +40,13 @@ export default class CCMToastAnimation extends CCMUIAnimation {
         if (aniImmediately) {
             defaultAniNode.setPosition(endPos.x, endPos.y);
             defaultAniNode.active = true;
-            this._curAniName = CCMUIAniName.UINone;
             finishCb();
         } else {
             defaultAniNode.setPosition(beginPos.x, beginPos.y);
             defaultAniNode.active = true;
-            this._curAniName = CCMUIAniName.UIClose;
             cc.tween(defaultAniNode)
                 .to(0.5, { x: endPos.x, y: endPos.y }, { easing: "elasticIn" })
                 .call(() => {
-                    this._curAniName = CCMUIAniName.UINone;
                     finishCb();
                 })
                 .start();

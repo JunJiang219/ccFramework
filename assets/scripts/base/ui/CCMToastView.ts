@@ -2,16 +2,16 @@
  * toast view
  */
 
-import { CCMResKeeper } from "../res/CCMResKeeper";
 import { tipsMgr } from "./CCMTipsManager";
+import { CCMIUIArgs, CCMIUIInfo } from "./CCMUIManager";
+import CCMUIView from "./CCMUIView";
 
 const TOAST_CACHE_TIME = 0; // 界面默认缓存时间(单位：秒)
 
 // toast参数
-export interface CCMIToastOptions {
+export interface CCMIToastOptions extends CCMIUIArgs {
     text: string;
     duration?: number;
-    aniImmediately?: boolean;                   // 开关界面时，动画瞬时完成（即不播动画）
 
     userOptions?: any;                          // 用户自定义参数
 }
@@ -19,9 +19,9 @@ export interface CCMIToastOptions {
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class CCMToastView extends CCMResKeeper {
+export default class CCMToastView extends CCMUIView {
     // 缓存时间(单位：秒)
-    @property({ type: cc.Integer })
+    @property({ type: cc.Integer, override: true })
     cacheTime: number = TOAST_CACHE_TIME;
 
     @property(cc.Label)
@@ -30,36 +30,29 @@ export default class CCMToastView extends CCMResKeeper {
     @property(cc.Node)
     textBg: cc.Node = null;
 
-    private static _instCnt: number = 0; // 界面实例计数器
-
-    private _toastId: number = 0; // 界面id
-    public get toastId(): number { return this._toastId; }
-
-    private _instId: number = 0; // 界面实例唯一标识符
-    public get instId(): number { return this._instId; }
-
-    private _options: CCMIToastOptions = null; // dialog参数
+    protected _options: CCMIToastOptions = null; // toast参数
     public get options(): CCMIToastOptions { return this._options; }
 
     public cachedTS: number = 0;        // 开始缓存的时间戳
 
     /**
      * 当界面被创建时回调，生命周期内只调用一次(子类复写必须前置调用该父类逻辑)
-     * @param toastId 界面id
+     * @param uiId 界面id
      * @param options 参数
      */
-    public init(toastId: number, options: CCMIToastOptions): void {
-        this._toastId = toastId;
-        this._instId = ++CCMToastView._instCnt;
+    public init(uiId: number, options: CCMIToastOptions): void {
+        super.init(uiId, options);
+
         this._options = options;
         if (this.textLabel) this.textLabel.string = options?.text;
     }
 
     /**
-     * 当界面被打开时回调，每次调用 showDialog 时回调
+     * 当界面被打开时回调，每次调用 showToast 时回调
+     * @param fromUIInfo 从哪个UI打开的
      * @param options 可变参数
      */
-    public onOpen(options: CCMIToastOptions): void {
+    public onOpen(fromUIInfo: Readonly<CCMIUIInfo>, options: CCMIToastOptions): void {
         if (this.textBg && this.textLabel) {
             let textSize = this.textLabel.node.getContentSize();
             this.textBg.setContentSize(textSize.width + 10, textSize.height + 10);
@@ -74,4 +67,17 @@ export default class CCMToastView extends CCMResKeeper {
             tipsMgr.closeToast(this);
         }, this._options.duration || 3);
     }
+
+    /**
+     * 当界面被关闭时回调，每次调用Close时回调
+     * 返回值会传递给下一个界面
+     */
+    public onClose(): any { }
+
+    /**
+     * 当界面被置顶时回调，open 时并不会回调该函数
+     * @param preUIInfo 前一个ui
+     * @param args 可变参数，
+     */
+    public onTop(preUIInfo: Readonly<CCMIUIInfo>, ...args: any[]): void { }
 }

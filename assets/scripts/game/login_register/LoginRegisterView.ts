@@ -5,7 +5,7 @@
 import { evtMgr } from "../../base/common/CCMEventManager";
 import { CCMEvent } from "../../base/config/CCMEvent";
 import { i18nMgr } from "../../base/i18n/CCMI18nManager";
-import { CCMIUIArgs, uiMgr } from "../../base/ui/CCMUIManager";
+import { CCMIUIArgs, CCMIUIInfo, uiMgr } from "../../base/ui/CCMUIManager";
 import CCMUIView from "../../base/ui/CCMUIView";
 import CCMCryptoUtil from "../../base/utils/CCMCryptoUtil";
 import { ccmLog } from "../../base/utils/CCMLog";
@@ -46,7 +46,7 @@ export default class LoginRegisterView extends CCMUIView {
         super.onDestroy();
     }
 
-    public onOpen(fromUIID: number, uiArgs?: CCMIUIArgs): void {
+    public onOpen(fromUIInfo: CCMIUIInfo, uiArgs?: CCMIUIArgs): void {
 
     }
 

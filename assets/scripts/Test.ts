@@ -38,29 +38,28 @@ export default class Test extends cc.Component {
 
     // update (dt) {}
     openUI(event: cc.Event.EventTouch, customData: string) {
-        let uiId = parseInt(customData);
-        if (UIID.ROOT1 == uiId) {
-            uiMgr.open(UIID.ROOT1, { aniImmediately: true });
-        } else {
-            uiMgr.open(uiId);
+        switch (customData) {
+            case "root1":
+                uiMgr.open(UIID.ROOT1);
+                break;
+            case "root2":
+                uiMgr.open(UIID.ROOT2);
+                break;
+            default:
+                break;
         }
-
-        // cc.resources.load("prefabs/root1", (err, res) => {
-        //     if (err) {
-        //         ccmLog.error(err);
-        //         return;
-        //     }
-        //     let node = cc.instantiate(res);
-        //     node.parent = this.node.parent;
-        // });
     }
 
     closeUI(event: cc.Event.EventTouch, customData: string) {
-        let uiId = parseInt(customData);
-        if (UIID.ROOT1 == uiId) {
-            uiMgr.close(UIID.ROOT1, { aniImmediately: true });
-        } else {
-            uiMgr.close(uiId, null);
+        switch (customData) {
+            case "root1":
+                uiMgr.close(UIID.ROOT1);
+                break;
+            case "root2":
+                uiMgr.close(UIID.ROOT2);
+                break;
+            default:
+                break;
         }
     }
 

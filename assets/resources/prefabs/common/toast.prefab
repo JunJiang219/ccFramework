@@ -317,6 +317,7 @@
       "__id__": 1
     },
     "_enabled": true,
+    "quickClose": false,
     "cacheTime": 0,
     "textLabel": {
       "__id__": 6

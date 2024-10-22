@@ -6,18 +6,6 @@ import { CCMResKeeper } from "../res/CCMResKeeper";
 import { ProgressCallback } from "../res/CCMResLoader";
 import { CCMIUIInfo } from "./CCMUIManager";
 
-// 界面层级id
-export enum CCMUILayerID {
-    Game,           // 游戏界面层级
-    UI,             // UI界面层级
-    Popup,          // 弹窗层级
-    Dialog,         // 对话框层级
-    Toast,          // 提示层级
-    Loading,        // 加载层级
-    Top,            // 置顶层级
-    Num,            // 层级数量
-}
-
 // UI显示类型
 export enum CCMUIShowType {
     UISingle,           // 单界面显示，其下界面不显示，性能较好

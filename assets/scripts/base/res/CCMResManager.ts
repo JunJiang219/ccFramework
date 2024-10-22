@@ -72,6 +72,7 @@ export class CCMResManager {
                         if (undefined == args.keepTime) args.keepTime = ASSET_KEEP_DEFAULT_TIME;
                         args.keepRef = 1;
                         args.unKeepTS = 0;
+                        resKeeper.hasManualDelayRes = true;
                         break;
                     default:
                         break;
@@ -218,7 +219,17 @@ export class CCMResManager {
         if (this._updateElapsed >= RES_UPDATE_INTERVAL) {
             // 每5秒更新一次
             this._updateElapsed = 0;
-            this.releaseAssets();
+
+            for (const [resKeeper, cacheInfo] of this._resMap) {
+                if (!cc.isValid(resKeeper)) {
+                    // resKeeper 已销毁
+                    if (!cacheInfo.keeperInvalidTS) cacheInfo.keeperInvalidTS = Math.floor(Date.now() / 1000);
+                    this.releaseKeeperAssets(resKeeper);
+                } else {
+                    // resKeeper 未销毁
+                    if (resKeeper.hasManualDelayRes) this.releaseKeeperAssets(resKeeper);
+                }
+            }
         }
     }
 }

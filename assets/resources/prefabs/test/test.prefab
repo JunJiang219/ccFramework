@@ -533,7 +533,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "openUI",
-    "customEventData": "1"
+    "customEventData": "root1"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -957,7 +957,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "openUI",
-    "customEventData": "2"
+    "customEventData": "root2"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1381,7 +1381,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "closeUI",
-    "customEventData": "1"
+    "customEventData": "root1"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1805,7 +1805,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "closeUI",
-    "customEventData": "2"
+    "customEventData": "root2"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -2229,7 +2229,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "test",
-    "customEventData": "1"
+    "customEventData": ""
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -3077,7 +3077,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "openDialog",
-    "customEventData": "0"
+    "customEventData": ""
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -3501,7 +3501,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "closeDialog",
-    "customEventData": "0"
+    "customEventData": ""
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -3925,7 +3925,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "openToast",
-    "customEventData": "1"
+    "customEventData": ""
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -4349,7 +4349,7 @@
     "component": "",
     "_componentId": "a5ca3GaenFMbLgV6dMMPNYX",
     "handler": "closeToast",
-    "customEventData": "1"
+    "customEventData": ""
   },
   {
     "__type__": "cc.PrefabInfo",

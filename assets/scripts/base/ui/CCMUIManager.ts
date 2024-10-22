@@ -4,9 +4,11 @@
 
 import CCMDefaultKeeper from "../res/CCMDefaultKeeper";
 import { ProgressCallback, resLoader } from "../res/CCMResLoader";
+import { CCMResReleaseTiming } from "../res/CCMResManager";
 import { ccmLog } from "../utils/CCMLog";
+import { CCMLayerID, layerMgr } from "./CCMLayerManager";
 import CCMUIAnimation, { CCMUIAniName } from "./CCMUIAnimation";
-import CCMUIView, { CCMUILayerID, CCMUIShowType } from "./CCMUIView";
+import CCMUIView, { CCMUIShowType } from "./CCMUIView";
 
 const UI_UPDATE_INTERVAL = 5;        // UI管理器更新间隔（单位：秒）
 
@@ -22,13 +24,13 @@ export interface CCMIUIInfo {
     uiView: CCMUIView;                      // UI视图
     showType: CCMUIShowType;                // UI显示类型
     uiArgs?: any;                           // ui附加参数
-    layerId: CCMUILayerID;                  // 层级id
-    zOrder?: number;                        // 层级顺序
+    layerId: CCMLayerID;                    // 层级id
+    zOrder?: number;                        // 层级顺序(从1开始)
     preventNode?: cc.Node;                  // 防触摸节点
     isClose?: boolean;                      // 是否关闭
     isOpening?: boolean;                    // 是否正在打开
     isClosing?: boolean;                    // 是否正在关闭
-    stackVisible?: boolean;                 // 堆栈中是否可见
+    stackVisible: boolean;                  // 堆栈中是否可见
 }
 
 // UI配置
@@ -36,7 +38,7 @@ export interface CCMIUIConf {
     bundleName?: string;            // bundle名，不配则取默认值 'resources'
     prefabPath: string;             // UI预制体路径
     showType: CCMUIShowType;        // UI显示类型
-    layerId: CCMUILayerID;          // 层级id
+    layerId: CCMLayerID;          // 层级id
     multiInstance?: boolean;        // 是否允许多实例
     zOrder?: number;                // 层级顺序
     preventTouch?: boolean;         // 是否添加防触摸穿透节点
@@ -54,25 +56,30 @@ export default class CCMUIManager {
         return CCMUIManager._instance;
     }
 
-    // 层级根节点
-    private _layerRoot: cc.Node[] = [];
     // ui缓存
     private _uiCache: Set<CCMUIView> = new Set();
     // ui界面栈
     private _uiStack: CCMIUIInfo[] = [];
     // ui配置
     private _uiConf: { [uiId: number]: CCMIUIConf } = {};
+    // dialog id列表
+    private _dialogIds: number[] = [];
+    public get dialogIds(): ReadonlyArray<number> {
+        return this._dialogIds;
+    }
+    // toast id列表
+    private _toastIds: number[] = [];
+    public get toastIds(): ReadonlyArray<number> {
+        return this._toastIds;
+    }
     // ui更新历时
     private _updateElapsed: number = 0;
 
-    // 初始化ui配置
-    public initUIConf(uiConf: { [uiId: number]: CCMIUIConf }) {
+    // 初始化ui配置(仅在启动时调用一次)
+    public initUIConf(uiConf: { [uiId: number]: CCMIUIConf }, dialogIds: number[], toastIds: number[]) {
         this._uiConf = uiConf;
-    }
-
-    // 获取层级根节点
-    public getLayerRoot(layerId: CCMUILayerID): cc.Node {
-        return this._layerRoot[layerId];
+        this._dialogIds = dialogIds;
+        this._toastIds = toastIds;
     }
 
     // 创建全屏节点
@@ -97,28 +104,15 @@ export default class CCMUIManager {
         return node;
     }
 
-    public init() {
-        // 初始化层级根节点
-        if (0 === this._layerRoot.length) {
-            let cvs = cc.find("Canvas");
-            for (let i = 0; i < CCMUILayerID.Num; i++) {
-                let layerRoot = this._createFullScreenNode(`Layer${i + 1}`);
-                cvs.addChild(layerRoot, i + 1);
-
-                this._layerRoot.push(layerRoot);
-            }
-        }
-    }
-
     /**
      * 添加防触摸层
      * @param layerId 层级id
      * @param zOrder 屏蔽层的层级
      * @param color 防触摸节点颜色
      */
-    private _preventTouch(layerId: CCMUILayerID, zOrder: number, color?: cc.Color) {
+    private _preventTouch(layerId: CCMLayerID, zOrder: number, color?: cc.Color) {
         let node = this._createFullScreenNode(`preventTouch_${layerId}_${zOrder}`);
-        let layer = this._layerRoot[layerId];
+        let layer = layerMgr.getLayerRoot(layerId);
         layer.addChild(node, zOrder);
 
         // 添加sprite组件
@@ -275,7 +269,13 @@ export default class CCMUIManager {
             // 异步加载UI预加载的资源
             this._autoLoadRes(uiView, preLoadProgressCb, () => {
                 uiView.init(uiId, uiArgs);
-                uiView.cacheAsset(prefab);
+                if (uiConf.multiInstance) {
+                    // 允许多实例，延时销毁资源方式缓存资源
+                    uiView.cacheAsset(prefab, { releaseTiming: CCMResReleaseTiming.AfterDestroy });
+                } else {
+                    // 不允许多实例，及时销毁方式缓存资源
+                    uiView.cacheAsset(prefab);
+                }
                 completeCallback(uiView);
             });
         });
@@ -288,14 +288,15 @@ export default class CCMUIManager {
             return;
         }
 
-        let uiIndexArr = this.getUIIndex(uiId);
-        if (uiIndexArr.length > 0) {
-            if (!uiConf.multiInstance) {
-                // 不允许多实例，先关闭再打开
+
+        if (!uiConf.multiInstance) {
+            // 不允许多实例，先关闭再打开
+            let uiIndexArr = this.getUIIndex(uiId);
+            if (uiIndexArr.length > 0) {
                 this.close(uiId, { aniImmediately: true });
+                this.open(uiId, uiArgs, progressCallback, preLoadProgressCb);
+                return;
             }
-            this.open(uiId, uiArgs, progressCallback, preLoadProgressCb);
-            return;
         }
 
         let uiInfo: CCMIUIInfo = {
@@ -305,6 +306,7 @@ export default class CCMUIManager {
             uiArgs: uiArgs,
             layerId: uiConf.layerId,
             preventNode: null,
+            stackVisible: true,
         };
 
         // zOrder赋值
@@ -320,7 +322,7 @@ export default class CCMUIManager {
         this._uiStack.sort(this._sortUIStack);
 
         // 获取排序后的索引
-        uiIndexArr = this.getUIIndex(uiId);
+        let uiIndexArr = this.getUIIndex(uiId);
 
         if (uiConf.preventTouch) {
             // 添加防触摸层
@@ -364,7 +366,7 @@ export default class CCMUIManager {
 
         uiInfo.uiView = uiView;
         uiView.node.zIndex = uiInfo.zOrder;
-        uiView.node.parent = this._layerRoot[uiInfo.layerId];
+        uiView.node.parent = layerMgr.getLayerRoot(uiInfo.layerId);
         uiView.node.active = true;
 
         // 快速关闭界面的设置，绑定界面中的 background，实现快速关闭
@@ -609,7 +611,7 @@ export default class CCMUIManager {
     }
 
     // 获取堆栈中的UI
-    public getUI(uiId: number): CCMUIView[] {
+    public getUI(uiId: number): Readonly<CCMUIView>[] {
         let retArr: CCMUIView[] = [];
         for (let i = 0; i < this._uiStack.length; i++) {
             if (this._uiStack[i].uiId == uiId) {
@@ -621,7 +623,7 @@ export default class CCMUIManager {
     }
 
     // 获取堆栈中的UI索引
-    public getUIIndex(uiOrId: CCMUIView | number): number[] {
+    public getUIIndex(uiOrId: CCMUIView | number): ReadonlyArray<number> {
         let retArr: number[] = [];
         if ('number' == typeof uiOrId) {
             for (let i = 0; i < this._uiStack.length; i++) {
@@ -643,7 +645,7 @@ export default class CCMUIManager {
 
     // 获取堆栈中的UI信息
     public getUIInfo(uiOrId: CCMUIView | number): Readonly<CCMIUIInfo>[] {
-        let retArr: Readonly<CCMIUIInfo>[] = [];
+        let retArr: CCMIUIInfo[] = [];
         if ('number' == typeof uiOrId) {
             for (let i = 0; i < this._uiStack.length; i++) {
                 if (this._uiStack[i].uiId == uiOrId) {
@@ -679,11 +681,9 @@ export default class CCMUIManager {
 
     // ui是否正在显示
     public isShowing(uiOrId: CCMUIView | number): boolean {
-        let uiIndexArr = this.getUIIndex(uiOrId);
-        for (let i = 0; i < uiIndexArr.length; ++i) {
-            let uiIndex = uiIndexArr[i];
-            let uiInfo = this._uiStack[uiIndex];
-            if (uiInfo.stackVisible) return true;
+        let uiInfoArr = this.getUIInfo(uiOrId);
+        for (let i = 0; i < uiInfoArr.length; ++i) {
+            if (uiInfoArr[i].stackVisible) return true;
         }
 
         return false;

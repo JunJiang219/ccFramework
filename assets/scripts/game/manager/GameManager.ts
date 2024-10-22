@@ -3,15 +3,15 @@
  */
 
 import { preventOperate } from "../../base/common/CCMPreventOperate";
-import { CCMLanguageType, i18nMgr } from "../../base/i18n/CCMI18nManager";
+import { i18nMgr } from "../../base/i18n/CCMI18nManager";
 import { resMgr } from "../../base/res/CCMResManager";
-import { tipsMgr } from "../../base/ui/CCMTipsManager";
-import { CCMIUIArgs, uiMgr } from "../../base/ui/CCMUIManager";
+import { layerMgr } from "../../base/ui/CCMLayerManager";
+import { uiMgr } from "../../base/ui/CCMUIManager";
 import { ccmLog } from "../../base/utils/CCMLog";
 import CCMUtil from "../../base/utils/CCMUtil";
 import { URL_PARAM } from "../config/HttpDefine";
 import { STORAGE_KEY } from "../config/StorageDefine";
-import { DialogConfig, ToastConfig, UIConfig, UIID } from "../config/UIConfig";
+import { UIConfig, UIID } from "../config/UIConfig";
 import { gameData } from "../data/GameData";
 
 const { ccclass, property } = cc._decorator;
@@ -30,10 +30,8 @@ export default class GameManager extends cc.Component {
 
     private async init() {
         cc.game.addPersistRootNode(this.node);  // 设为常驻节点
-        uiMgr.initUIConf(UIConfig);
-        uiMgr.init();
-        tipsMgr.initDialogConf(DialogConfig);
-        tipsMgr.initToastConf(ToastConfig);
+        layerMgr.init();
+        uiMgr.initUIConf(UIConfig, [UIID.DIALOG], [UIID.TOAST]);
         preventOperate.init();
 
         // 解析url参数
@@ -52,13 +50,13 @@ export default class GameManager extends cc.Component {
 
         // 打开登录界面
         uiMgr.open(UIID.LOGIN_REGISTER);
+        // uiMgr.open(UIID.TEST);
 
         return Promise.resolve();
     }
 
     update(dt: number) {
         uiMgr.update(dt);
-        tipsMgr.update(dt);
         resMgr.update(dt);
     }
 }

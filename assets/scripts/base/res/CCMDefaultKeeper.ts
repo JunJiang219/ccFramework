@@ -16,9 +16,6 @@ export default class CCMDefaultKeeper extends CCMResKeeper {
     pureWhiteSpf: cc.SpriteFrame = null;
 
     @property(cc.Prefab)
-    preventPrefab: cc.Prefab = null;
-
-    @property(cc.Prefab)
     preventOperatePrefab: cc.Prefab = null;
 
     onLoad() {

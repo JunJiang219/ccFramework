@@ -288,8 +288,11 @@
       "__id__": 2
     },
     "_enabled": true,
-    "preventPrefab": {
-      "__uuid__": "05da481b-b6f0-4807-ae0b-43f07a4f56b7"
+    "pureWhiteSpf": {
+      "__uuid__": "410fb916-8721-4663-bab8-34397391ace7"
+    },
+    "preventOperatePrefab": {
+      "__uuid__": "f65109f7-8052-4ebe-9108-6eb219b094b3"
     },
     "_id": "dfnoMwNGFL3rUKlhwCjvVC"
   },

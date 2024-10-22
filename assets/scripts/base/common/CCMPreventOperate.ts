@@ -3,8 +3,7 @@
  */
 
 import CCMDefaultKeeper from "../res/CCMDefaultKeeper";
-import { uiMgr } from "../ui/CCMUIManager";
-import { CCMUILayerID } from "../ui/CCMUIView";
+import { CCMLayerID, layerMgr } from "../ui/CCMLayerManager";
 
 export class CCMPreventOperate {
 
@@ -23,16 +22,13 @@ export class CCMPreventOperate {
     protected badNetNode: cc.Node = null;
     protected badNetTimer: any = null;
     protected badNetTime: number = 3000;     // 网络不好时长(毫秒)
+
     public init() {
         this.preventNode = cc.instantiate(CCMDefaultKeeper.inst.preventOperatePrefab);
-        this.preventNode.parent = uiMgr.getLayerRoot(CCMUILayerID.UI);
-        this.preventNode.zIndex = Infinity;
+        this.preventNode.parent = layerMgr.getLayerRoot(CCMLayerID.UI);
+        this.preventNode.zIndex = cc.macro.MAX_ZINDEX;
         this.bgNode = this.preventNode.getChildByName("bg");
         this.badNetNode = this.preventNode.getChildByName("badNet");
-
-        this.preventNode.on(cc.Node.EventType.TOUCH_START, function (event: cc.Event.EventCustom) {
-            event.stopPropagation();
-        }, this.preventNode);
 
         this.enableOperate(true);
     }

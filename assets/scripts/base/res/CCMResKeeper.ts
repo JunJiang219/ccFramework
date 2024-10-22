@@ -16,6 +16,10 @@ const { ccclass } = _decorator;
 
 @ccclass
 export class CCMResKeeper extends Component {
+
+    // 是否持有手动延迟释放的资源（只要缓存过，就赋值为true）
+    public hasManualDelayRes: boolean = false;
+
     /**
      * 开始加载资源
      * @param bundle        assetbundle的路径
