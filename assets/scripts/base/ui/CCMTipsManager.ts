@@ -19,7 +19,7 @@ export default class CCMTipsManager {
         return CCMTipsManager._instance;
     }
 
-    public showDialog(options: CCMIDialogOptions, closeOther: boolean = false, dialogId?: number) {
+    public showDialog(options: CCMIDialogOptions, closeOther: boolean = false, aniOverCb: () => void = null, dialogId?: number) {
         if (closeOther) this.closeAllDialogs();
 
         let dialogIdArr = uiMgr.dialogIds;
@@ -29,11 +29,11 @@ export default class CCMTipsManager {
             ccmLog.error(`showDialog ${dialogId} abandon! not dialog`);
             return;
         }
-        uiMgr.open(dialogId, options);
+        uiMgr.open(dialogId, options, aniOverCb);
     }
 
     // 关闭指定dialog
-    public closeDialog(uiOrId: CCMDialogView | number, options: CCMIDialogOptions = null, noCache: boolean = false) {
+    public closeDialog(uiOrId: CCMDialogView | number, options: CCMIDialogOptions = null, aniOverCb: () => void = null, noCache: boolean = false) {
         let dialogIdArr = uiMgr.dialogIds;
         let dialogId: number = 0;
         if ('number' == typeof uiOrId) {
@@ -47,18 +47,18 @@ export default class CCMTipsManager {
             return;
         }
 
-        uiMgr.close(uiOrId as CCMUIView | number, options, noCache);
+        uiMgr.close(uiOrId as CCMUIView | number, options, aniOverCb, noCache);
     }
 
     // 关闭所有dialog
     public closeAllDialogs(noCache: boolean = false) {
         uiMgr.dialogIds.forEach(dialogId => {
-            this.closeDialog(dialogId, null, noCache);
+            this.closeDialog(dialogId, null, null, noCache);
         });
     }
 
     // 展示toast
-    public showToast(options: CCMIToastOptions, closeOther: boolean = false, toastId?: number) {
+    public showToast(options: CCMIToastOptions, closeOther: boolean = false, aniOverCb: () => void = null, toastId?: number) {
         if (closeOther) this.closeAllToasts();
 
         let toastIdArr = uiMgr.toastIds;
@@ -68,11 +68,11 @@ export default class CCMTipsManager {
             ccmLog.error(`showToast ${toastId} abandon! not toast`);
             return;
         }
-        uiMgr.open(toastId, options);
+        uiMgr.open(toastId, options, aniOverCb);
     }
 
     // 关闭指定toast
-    public closeToast(uiOrId: CCMToastView | number, options: CCMIToastOptions = null, noCache: boolean = false) {
+    public closeToast(uiOrId: CCMToastView | number, options: CCMIToastOptions = null, aniOverCb: () => void = null, noCache: boolean = false) {
         let toastIdArr = uiMgr.toastIds;
         let toastId: number = 0;
         if ('number' == typeof uiOrId) {
@@ -86,13 +86,13 @@ export default class CCMTipsManager {
             return;
         }
 
-        uiMgr.close(uiOrId as CCMUIView | number, options, noCache);
+        uiMgr.close(uiOrId as CCMUIView | number, options, aniOverCb, noCache);
     }
 
     // 关闭所有toast
     public closeAllToasts(noCache: boolean = false) {
         uiMgr.toastIds.forEach(toastId => {
-            this.closeToast(toastId, null, noCache);
+            this.closeToast(toastId, null, null, noCache);
         });
     }
 }

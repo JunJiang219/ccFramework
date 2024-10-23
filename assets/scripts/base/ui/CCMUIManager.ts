@@ -281,7 +281,7 @@ export default class CCMUIManager {
         });
     }
 
-    public open(uiId: number, uiArgs: any = null, progressCallback: ProgressCallback = null, preLoadProgressCb: ProgressCallback = null): void {
+    public open(uiId: number, uiArgs: any = null, aniOverCb: () => void = null, progressCallback: ProgressCallback = null, preLoadProgressCb: ProgressCallback = null): void {
         let uiConf = this._uiConf[uiId];
         if (!uiConf) {
             ccmLog.log(`open ${uiId} failed! not configured`);
@@ -294,7 +294,7 @@ export default class CCMUIManager {
             let uiIndexArr = this.getUIIndex(uiId);
             if (uiIndexArr.length > 0) {
                 this.close(uiId, { aniImmediately: true });
-                this.open(uiId, uiArgs, progressCallback, preLoadProgressCb);
+                this.open(uiId, uiArgs, aniOverCb, progressCallback, preLoadProgressCb);
                 return;
             }
         }
@@ -351,7 +351,7 @@ export default class CCMUIManager {
                 return;
             }
 
-            this._onUIOpen(uiId, uiView, uiInfo);
+            this._onUIOpen(uiId, uiView, uiInfo, aniOverCb);
         }, uiArgs);
     }
 
@@ -361,7 +361,7 @@ export default class CCMUIManager {
      * @param uiView 界面对象
      * @param uiInfo 界面栈对应的信息结构
      */
-    private _onUIOpen(uiId: number, uiView: CCMUIView, uiInfo: CCMIUIInfo) {
+    private _onUIOpen(uiId: number, uiView: CCMUIView, uiInfo: CCMIUIInfo, aniOverCb: () => void = null) {
         if (!uiView) return;
 
         uiInfo.uiView = uiView;
@@ -395,16 +395,17 @@ export default class CCMUIManager {
             fromUIInfo = this.getTopShowUIInfo(1);
         }
         uiView.onOpen(fromUIInfo);
-        this._autoExecAnimation(uiView, CCMUIAniName.UIOpen, (...args: any[]) => {
+        this._autoExecAnimation(uiView, CCMUIAniName.UIOpen, () => {
             // 动画播放完成回调
             uiInfo.isOpening = false;
             uiView.onOpenAniOver();
             uiView.node.active = uiInfo.stackVisible;   // 动画播完后设置节点显示隐藏状态
+            if (aniOverCb) aniOverCb();
         }, uiInfo.uiArgs?.aniImmediately);
     }
 
     // 关闭指定界面
-    public close(uiOrId: CCMUIView | number, uiArgs: any = null, noCache: boolean = false) {
+    public close(uiOrId: CCMUIView | number, uiArgs: any = null, aniOverCb: () => void = null, noCache: boolean = false) {
         let uiIndexArr = this.getUIIndex(uiOrId);
         if (uiIndexArr.length <= 0) {
             if ('number' == typeof uiOrId) {
@@ -416,16 +417,13 @@ export default class CCMUIManager {
         }
 
         // 循环关闭
+        let aniCnt = uiIndexArr.length;
         for (let i = uiIndexArr.length - 1; i >= 0; --i) {
             let uiIndex = uiIndexArr[i];
             let uiInfo = this._uiStack[uiIndex];
             let uiView = uiInfo.uiView;
             uiInfo.isClose = true;
 
-            if (uiInfo.preventNode) {
-                uiInfo.preventNode.destroy();
-                uiInfo.preventNode = null;
-            }
             this._uiStack.splice(uiIndex, 1);   // 必须倒着删除，否则索引会变化
             // 刷新其他界面的显示
             this._updateUI();
@@ -434,9 +432,16 @@ export default class CCMUIManager {
 
             uiInfo.isOpening = false;
             uiInfo.isClosing = true;
-            this._autoExecAnimation(uiView, CCMUIAniName.UIClose, (...args: any[]) => {
-                uiInfo.isClosing = false;
+            this._autoExecAnimation(uiView, CCMUIAniName.UIClose, () => {
                 // 动画播放完成回调
+                uiInfo.isClosing = false;
+
+                // 删除防触摸层
+                if (uiInfo.preventNode) {
+                    uiInfo.preventNode.destroy();
+                    uiInfo.preventNode = null;
+                }
+
                 let preUIInfo = this.getTopShowUIInfo();
                 if (preUIInfo) {
                     preUIInfo.uiView?.onTop(uiInfo, uiView.onClose());
@@ -460,6 +465,11 @@ export default class CCMUIManager {
                         uiView.cachedTS = 0;
                         uiView.node.destroy();
                     }
+                }
+
+                --aniCnt;
+                if (aniCnt <= 0 && aniOverCb) {
+                    aniOverCb();
                 }
             }, uiArgs?.aniImmediately);
         }

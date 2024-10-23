@@ -49,8 +49,11 @@ export default class GameManager extends cc.Component {
         ccmLog.info(`setLanguage success: ${languageResult.isSuccess}, Current language: ${languageResult.curLang}`);
 
         // 打开登录界面
-        uiMgr.open(UIID.LOGIN_REGISTER);
-        // uiMgr.open(UIID.TEST);
+        if (cc.director.getScene().name === "entry") {
+            uiMgr.open(UIID.LOGIN_REGISTER);
+        } else {
+            uiMgr.open(UIID.TEST);
+        }
 
         return Promise.resolve();
     }

@@ -40,7 +40,7 @@ export default class Test extends cc.Component {
     openUI(event: cc.Event.EventTouch, customData: string) {
         switch (customData) {
             case "root1":
-                uiMgr.open(UIID.ROOT1);
+                uiMgr.open(UIID.ROOT1, null, () => { uiMgr.open(UIID.ROOT2); });
                 break;
             case "root2":
                 uiMgr.open(UIID.ROOT2);
@@ -53,7 +53,7 @@ export default class Test extends cc.Component {
     closeUI(event: cc.Event.EventTouch, customData: string) {
         switch (customData) {
             case "root1":
-                uiMgr.close(UIID.ROOT1);
+                uiMgr.close(UIID.ROOT1, null, () => { uiMgr.close(UIID.ROOT2); });
                 break;
             case "root2":
                 uiMgr.close(UIID.ROOT2);
