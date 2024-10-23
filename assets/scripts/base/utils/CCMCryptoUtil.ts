@@ -3,7 +3,6 @@
  */
 
 import { Base64 } from "js-base64";
-
 declare const XXTEA: any;
 
 export default class CCMCryptoUtil {

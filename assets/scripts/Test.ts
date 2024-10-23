@@ -107,7 +107,7 @@ export default class Test extends cc.Component {
         ccmLog.log("encode: ", encode);
         ccmLog.log("decode: ", decode);
 
-        encode = CCMCryptoUtil.encodeXXTEA("中文&english", "BIGWIN@888!");
+        encode = CCMCryptoUtil.encodeXXTEA("123abc", "BIGWIN@888!");    // 6U439K1lkb5KJYD4
         decode = CCMCryptoUtil.decodeXXTEA(encode, "BIGWIN@888!");
         ccmLog.log("encode: ", encode);
         ccmLog.log("decode: ", decode);
