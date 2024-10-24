@@ -102,13 +102,13 @@ export default class Test extends cc.Component {
         ccmLog.log("decodedMsg: ", decodedMsg);
 
 
-        let encode = CCMCryptoUtil.encodeBase64("中文&english");
-        let decode = CCMCryptoUtil.decodeBase64(encode);
+        let encode = CCMCryptoUtil.base64_encode("中文&english");
+        let decode = CCMCryptoUtil.base64_decode(encode);
         ccmLog.log("encode: ", encode);
         ccmLog.log("decode: ", decode);
 
-        encode = CCMCryptoUtil.encodeXXTEA("123abc", "BIGWIN@888!");    // 6U439K1lkb5KJYD4
-        decode = CCMCryptoUtil.decodeXXTEA(encode, "BIGWIN@888!");
+        encode = CCMCryptoUtil.xxtea_encryptToBase64("123abc", "BIGWIN@888!");    // 6U439K1lkb5KJYD4
+        decode = CCMCryptoUtil.xxtea_decryptFromBase64(encode, "BIGWIN@888!");
         ccmLog.log("encode: ", encode);
         ccmLog.log("decode: ", decode);
     }

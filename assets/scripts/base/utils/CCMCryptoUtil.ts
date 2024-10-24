@@ -7,7 +7,7 @@ declare const XXTEA: any;
 
 export default class CCMCryptoUtil {
     // 将字符串编码为 Base64
-    public static encodeBase64(str: string): string {
+    public static base64_encode(str: string): string {
         // // 强制类型转换为 UTF-8 编码
         // const bytes = new TextEncoder().encode(str);
         // let binary = '';
@@ -19,7 +19,7 @@ export default class CCMCryptoUtil {
     }
 
     // 将 Base64 解码为字符串
-    public static decodeBase64(base64Str: string): string {
+    public static base64_decode(base64Str: string): string {
         // const binaryString = atob(base64Str);
         // const bytes = new Uint8Array(binaryString.length);
         // for (let i = 0; i < binaryString.length; i++) {
@@ -29,11 +29,19 @@ export default class CCMCryptoUtil {
         return Base64.decode(base64Str);
     }
 
-    public static encodeXXTEA(data: string, key: string): string {
+    public static xxtea_encrypt(data: string, key: string): string {
         return XXTEA.encrypt(data, key);
     }
 
-    public static decodeXXTEA(data: string, key: string): string {
+    public static xxtea_decrypt(data: string, key: string): string {
         return XXTEA.decrypt(data, key);
+    }
+
+    public static xxtea_encryptToBase64(data: string, key: string): string {
+        return XXTEA.encryptToBase64(data, key);
+    }
+
+    public static xxtea_decryptFromBase64(data: string, key: string): string {
+        return XXTEA.decryptFromBase64(data, key);
     }
 }

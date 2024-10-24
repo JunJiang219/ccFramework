@@ -24,21 +24,18 @@ export default class HttpProtocolHelper {
 
     private encodeMsgObj(msgObj: any) {
         let msgStep1 = JSON.stringify(msgObj);
-        let msgStep2 = CCMCryptoUtil.encodeXXTEA(msgStep1, gameData.getXxteaKey());
-        let msgStep3 = CCMCryptoUtil.encodeBase64(msgStep2);
+        let msgStep2 = CCMCryptoUtil.xxtea_encryptToBase64(msgStep1, gameData.getXxteaKey());
 
-        return msgStep3;
+        return msgStep2;
     }
 
     public decodeMsgStr(msgStr: string) {
-        let msgStep1 = CCMCryptoUtil.decodeBase64(msgStr);
+        let msgStep1 = CCMCryptoUtil.xxtea_decryptFromBase64(msgStr, gameData.getXxteaKey());
         ccmLog.log("decodeMsgStr msgStep1:", msgStep1);
-        let msgStep2 = CCMCryptoUtil.decodeXXTEA(msgStep1, gameData.getXxteaKey());
+        let msgStep2 = JSON.parse(msgStep1);
         ccmLog.log("decodeMsgStr msgStep2:", msgStep2);
-        let msgStep3 = JSON.parse(msgStep2);
-        ccmLog.log("decodeMsgStr msgStep3:", msgStep3);
 
-        return msgStep3;
+        return msgStep2;
     }
 
     public async sendGuestLogin(): Promise<any> {
