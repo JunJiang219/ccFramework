@@ -137,10 +137,8 @@ export default class CCMI18nComponent extends cc.Component {
     }
 
     protected start(): void {
-        if (!CC_EDITOR) {
-            i18nMgr.addComp(this);
-            this.languageId = i18nMgr.languageId;
-        }
+        i18nMgr.addComp(this);
+        this.languageId = i18nMgr.languageId;
     }
 
     protected onDestroy(): void {
