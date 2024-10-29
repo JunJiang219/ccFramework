@@ -4813,7 +4813,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 66.74,
+      "width": 97.87,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -4865,8 +4865,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "abd",
-    "_N$string": "abd",
+    "_string": "Login",
+    "_N$string": "Login",
     "_fontSize": 40,
     "_lineHeight": 40,
     "_enableWrapText": true,
@@ -4922,7 +4922,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 300,
-      "height": 63
+      "height": 363
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -4968,7 +4968,7 @@
     "_enabled": true,
     "_fontFamily": "Arial",
     "_isSystemFontUsed": true,
-    "_N$string": "<color=#00ff00>Rich</c><color=#0fffff>Text</color>",
+    "_N$string": "<color=#ffffff>By accessing the site. I confirm that I am 18 years old and I have read the </c><color=#6751eb><u><on click=\"openTermsOfService\">Terms of Service</on></u></color>",
     "_N$horizontalAlign": 0,
     "_N$fontSize": 40,
     "_N$font": null,
@@ -5017,8 +5017,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 40,
-      "height": 36
+      "width": 175,
+      "height": 226
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -5070,7 +5070,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "8cdb44ac-a3f6-449f-b354-7cd48cf84061"
+      "__uuid__": "31bc895a-c003-4566-a9f3-2e54ae1c17dc"
     },
     "_type": 0,
     "_sizeMode": 1,

@@ -12,9 +12,14 @@ import CCMI18nComponent from "./CCMI18nComponent";
 
 // 语言种类
 export enum CCMLanguageType {
-    EN = "en",
-    TH = "th",
+    EN,
+    TH,
 }
+
+export const LANGUAGE_KEYS = [
+    "en",
+    "th",
+];
 
 // 状态
 export enum CCMI18nState {
@@ -35,63 +40,72 @@ export default class CCMI18nManager {
         return CCMI18nManager._instance;
     }
 
-    private _language: string = "";   // 当前语言
-    public get language(): string { return this._language; }
+    private _languageId: CCMLanguageType = CCMLanguageType.EN;   // 当前语言
+    public get languageId(): CCMLanguageType { return this._languageId; }
+    public get language(): string { return LANGUAGE_KEYS[this._languageId]; }
 
-    private _textConf: Map<string, any> = new Map();        // 文本语言包
-    private _textureConf: Map<string, any> = new Map();     // 图片语言包
+    private _textConf: Map<number, any> = new Map();        // 文本语言包
+    private _textureConf: Map<number, any> = new Map();     // 图片语言包
     private _state: CCMI18nState = CCMI18nState.UNINIT;           // 状态
     public get state(): CCMI18nState { return this._state; }
 
     private _compSet: Set<CCMI18nComponent> = new Set();    // i18n组件集合
 
-    public setLanguage(lang: string): Promise<{ isSuccess: boolean, curLang: string }> {
+    public languageKey2Id(key: string): CCMLanguageType {
+        let index = LANGUAGE_KEYS.indexOf(key);
+        if (-1 == index) {
+            return CCMLanguageType.EN;
+        }
+        return index as CCMLanguageType;
+    }
+
+    public setLanguage(langId: CCMLanguageType): Promise<{ isSuccess: boolean, curLangId: CCMLanguageType }> {
         return new Promise((resolve, reject) => {
             if (CCMI18nState.CONFIG_LOADING == this._state) {
                 ccmLog.warn("i18n config is loading, please wait...");
-                reject({ isSuccess: false, curLang: this._language });
+                reject({ isSuccess: false, curLangId: this._languageId });
                 return;
             }
 
-            let langSupport = CCMUtil.isValueInEnum(lang, CCMLanguageType);
-            let oldLang = this._language;
-            let newLang = langSupport ? lang : CCMLanguageType.EN;
-            if (oldLang === newLang) {
-                reject({ isSuccess: false, curLang: this._language });
+            let oldLangId = this._languageId;
+            let newLangId = langId;
+            if (oldLangId === newLangId && CCMI18nState.UNINIT !== this._state) {
+                reject({ isSuccess: false, curLangId: this._languageId });
                 return;
             }
 
             this._state = CCMI18nState.CONFIG_LOADING;
-            this.loadLanguage(newLang)
+            this.loadLanguage(newLangId)
                 .then((val) => {
-                    this._language = newLang;
+                    this._languageId = newLangId;
                     this._state = CCMI18nState.CONFIG_LOAD_SUCCESS;
                     this.reloadAllComponent();
-                    evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._language);
-                    resolve({ isSuccess: true, curLang: this._language });
+                    evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._languageId);
+                    resolve({ isSuccess: true, curLangId: this._languageId });
                 })
                 .catch((err) => {
                     this._state = CCMI18nState.CONFIG_LOAD_FAILED;
-                    reject({ isSuccess: false, curLang: this._language });
+                    reject({ isSuccess: false, curLangId: this._languageId });
                 });
         });
     }
 
     // 是否已加载指定语言配置
-    public isLanguageLoaded(lang?: string): boolean {
-        let checkLang = lang || this._language;
-        return this._textConf.has(checkLang) || this._textureConf.has(checkLang);
+    public isLanguageLoaded(langId?: CCMLanguageType): boolean {
+        let checkLangId = (undefined != langId) ? langId : this._languageId;
+        return this._textConf.has(checkLangId) || this._textureConf.has(checkLangId);
     }
 
     // 加载指定语言配置
-    public loadLanguage(lang: string): Promise<boolean> {
+    public loadLanguage(langId: CCMLanguageType): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            if (this.isLanguageLoaded(lang)) {
+            if (this.isLanguageLoaded(langId)) {
                 resolve(true);
                 return;
             }
 
             let resArr: string[] = [];
+            let lang = LANGUAGE_KEYS[langId];
             resArr.push(`i18n/${lang}/configs/text_${lang}`);
             resArr.push(`i18n/${lang}/configs/texture_${lang}`);
             resLoader.load(resArr, cc.JsonAsset, (err: Error, assets: cc.JsonAsset[]) => {
@@ -102,28 +116,30 @@ export default class CCMI18nManager {
                 }
 
                 // 长久保存，防止意外释放
-                CCMDefaultKeeper.inst.cacheAsset(assets[0]);
-                CCMDefaultKeeper.inst.cacheAsset(assets[1]);
+                if (CCMDefaultKeeper.inst) {
+                    CCMDefaultKeeper.inst.cacheAsset(assets[0]);
+                    CCMDefaultKeeper.inst.cacheAsset(assets[1]);
+                }
 
-                this._textConf.set(lang, assets[0].json);
-                this._textureConf.set(lang, assets[1].json);
+                this._textConf.set(langId, assets[0].json);
+                this._textureConf.set(langId, assets[1].json);
                 resolve(true);
             });
         });
     }
 
     // 获取文本语言值
-    public getTextValue(key: string, lang?: string) {
-        let checkLang = lang || this._language;
-        let jsonObj = this._textConf.get(checkLang);
-        return jsonObj[key] || `${checkLang}_${key}`;
+    public getTextValue(key: string, langId?: CCMLanguageType) {
+        let checkLangId = (undefined !== langId && null !== langId) ? langId : this._languageId;
+        let jsonObj = this._textConf.get(checkLangId);
+        return jsonObj[key] || `${checkLangId}_${key}`;
     }
 
     // 获取图片语言值
-    public getTextureValue(key: string, lang?: string) {
-        let checkLang = lang || this._language;
-        let jsonObj = this._textureConf.get(checkLang);
-        return jsonObj[key] || `${checkLang}_${key}`;
+    public getTextureValue(key: string, langId?: CCMLanguageType) {
+        let checkLangId = (undefined !== langId && null !== langId) ? langId : this._languageId;
+        let jsonObj = this._textureConf.get(checkLangId);
+        return jsonObj[key] || `${checkLangId}_${key}`;
     }
 
     public addComp(comp: CCMI18nComponent) {
@@ -138,9 +154,7 @@ export default class CCMI18nManager {
     public reloadAllComponent() {
         this._compSet.forEach((comp) => {
             if (cc.isValid(comp)) {
-                comp.reloadLabels();
-                comp.reloadRichTexts();
-                comp.reloadSprites();
+                comp.languageId = this._languageId;
             } else {
                 this._compSet.delete(comp);
             }

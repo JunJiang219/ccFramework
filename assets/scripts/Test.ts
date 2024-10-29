@@ -86,7 +86,7 @@ export default class Test extends cc.Component {
     }
 
     changeLanguage(event: cc.Event.EventTouch, customData: string) {
-        if (CCMLanguageType.EN == i18nMgr.language) {
+        if (CCMLanguageType.EN == i18nMgr.languageId) {
             i18nMgr.setLanguage(CCMLanguageType.TH);
         } else {
             i18nMgr.setLanguage(CCMLanguageType.EN);

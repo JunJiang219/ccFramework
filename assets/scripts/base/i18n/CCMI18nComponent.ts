@@ -47,6 +47,19 @@ export class CCMI18nSprite {
 @menu("自定义/CCMI18nComponent")
 export default class CCMI18nComponent extends cc.Component {
 
+    private _languageId: CCMLanguageType = CCMLanguageType.EN;
+    @property({ type: cc.Enum(CCMLanguageType) })
+    get languageId() { return this._languageId; }
+    set languageId(value: CCMLanguageType) {
+        this._languageId = value;
+        i18nMgr.loadLanguage(value)
+            .then(() => {
+                this.reloadLabels();
+                this.reloadRichTexts();
+                this.reloadSprites();
+            });
+    }
+
     @property([CCMI18nLabel])
     public labels: CCMI18nLabel[] = [];
 
@@ -80,29 +93,29 @@ export default class CCMI18nComponent extends cc.Component {
     }
 
     // 重载label
-    public reloadLabels(): void {
-        if (CCMI18nState.UNINIT == i18nMgr.state || CCMI18nState.CONFIG_LOADING == i18nMgr.state) return;
+    private reloadLabels(): void {
+        // if (CCMI18nState.UNINIT == i18nMgr.state || CCMI18nState.CONFIG_LOADING == i18nMgr.state) return;
         this.labels.forEach(label => {
             if (label.target && label.key) {
-                label.target.string = i18nMgr.getTextValue(label.key);
+                label.target.string = i18nMgr.getTextValue(label.key, this._languageId);
             }
         });
     }
 
-    public reloadRichTexts(): void {
-        if (CCMI18nState.UNINIT == i18nMgr.state || CCMI18nState.CONFIG_LOADING == i18nMgr.state) return;
+    private reloadRichTexts(): void {
+        // if (CCMI18nState.UNINIT == i18nMgr.state || CCMI18nState.CONFIG_LOADING == i18nMgr.state) return;
         this.richTexts.forEach(label => {
             if (label.target && label.key) {
-                label.target.string = i18nMgr.getTextValue(label.key);
+                label.target.string = i18nMgr.getTextValue(label.key, this._languageId);
             }
         });
     }
 
-    public reloadSprites(): void {
-        if (CCMI18nState.UNINIT == i18nMgr.state || CCMI18nState.CONFIG_LOADING == i18nMgr.state) return;
+    private reloadSprites(): void {
+        // if (CCMI18nState.UNINIT == i18nMgr.state || CCMI18nState.CONFIG_LOADING == i18nMgr.state) return;
         this.sprites.forEach(sprite => {
             if (sprite.target && sprite.key) {
-                let path = i18nMgr.getTextureValue(sprite.key);
+                let path = i18nMgr.getTextureValue(sprite.key, this._languageId);
                 if (path) {
                     resLoader.load(path, cc.SpriteFrame, (err, spriteFrame) => {
                         if (err) {
@@ -124,10 +137,10 @@ export default class CCMI18nComponent extends cc.Component {
     }
 
     protected start(): void {
-        i18nMgr.addComp(this);
-        this.reloadLabels();
-        this.reloadRichTexts();
-        this.reloadSprites();
+        if (!CC_EDITOR) {
+            i18nMgr.addComp(this);
+            this.languageId = i18nMgr.languageId;
+        }
     }
 
     protected onDestroy(): void {

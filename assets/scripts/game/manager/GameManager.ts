@@ -37,16 +37,17 @@ export default class GameManager extends cc.Component {
         // 解析url参数
         let url = window.location.href;
         let urlParams = CCMUtil.urlParse(url);
+        let languageId = i18nMgr.languageKey2Id(urlParams[URL_PARAM.LANGUAGE]);
 
         // 使用 Promise.all 来并行执行多个异步操作
         const [deviceId, languageResult] = await Promise.all([
             CCMUtil.getDeviceId(STORAGE_KEY.USER_DEVICEID),
-            i18nMgr.setLanguage(urlParams[URL_PARAM.LANGUAGE])
+            i18nMgr.setLanguage(languageId),
         ]);
 
         gameData.deviceId = deviceId;
         ccmLog.info(`deviceId: ${deviceId}`);
-        ccmLog.info(`setLanguage success: ${languageResult.isSuccess}, Current language: ${languageResult.curLang}`);
+        ccmLog.info(`setLanguage success: ${languageResult.isSuccess}, Current languageId: ${languageResult.curLangId}`);
 
         // 打开登录界面
         if (cc.director.getScene().name === "entry") {
