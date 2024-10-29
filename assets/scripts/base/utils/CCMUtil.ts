@@ -66,4 +66,16 @@ export default class CCMUtil {
 
         return Promise.resolve(deviceId);
     }
+
+    /**
+     * 替换占位符
+     * @param template 模板字符串
+     * @param placeholder 占位符，默认为 %s
+     * @param values 数字或字符串数组，用于替换占位符
+     * @returns 
+     */
+    public static replacePlaceholder(template: string, placeholder: string = "%s", ...values: any[]): string {
+        const regex = new RegExp(placeholder, 'g');
+        return template.replace(regex, () => values.shift() || '');
+    }
 }

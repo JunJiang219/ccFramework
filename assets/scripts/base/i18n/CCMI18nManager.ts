@@ -129,17 +129,27 @@ export default class CCMI18nManager {
     }
 
     // 获取文本语言值
-    public getTextValue(key: string, langId?: CCMLanguageType) {
+    public getTextValue(key: string, langId?: CCMLanguageType, ...args: any[]) {
         let checkLangId = (undefined !== langId && null !== langId) ? langId : this._languageId;
         let jsonObj = this._textConf.get(checkLangId);
-        return jsonObj[key] || `${checkLangId}_${key}`;
+        let text = jsonObj[key];
+        if (text && args.length > 0) {
+            return CCMUtil.replacePlaceholder(text, "%s", ...args);
+        } else {
+            return text || `${checkLangId}_${key}`;
+        }
     }
 
     // 获取图片语言值
-    public getTextureValue(key: string, langId?: CCMLanguageType) {
+    public getTextureValue(key: string, langId?: CCMLanguageType, ...args: any[]) {
         let checkLangId = (undefined !== langId && null !== langId) ? langId : this._languageId;
         let jsonObj = this._textureConf.get(checkLangId);
-        return jsonObj[key] || `${checkLangId}_${key}`;
+        let text = jsonObj[key];
+        if (text && args.length > 0) {
+            return CCMUtil.replacePlaceholder(text, "%s", ...args);
+        } else {
+            return text || `${checkLangId}_${key}`;
+        }
     }
 
     public addComp(comp: CCMI18nComponent) {
