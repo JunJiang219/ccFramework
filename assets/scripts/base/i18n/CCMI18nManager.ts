@@ -45,13 +45,14 @@ export default class CCMI18nManager {
 
     private _compSet: Set<CCMI18nComponent> = new Set();    // i18n组件集合
 
-    public async setLanguage(lang: string): Promise<{ isSuccess: boolean, curLang: string }> {
+    public setLanguage(lang: string): Promise<{ isSuccess: boolean, curLang: string }> {
         return new Promise((resolve, reject) => {
             if (CCMI18nState.CONFIG_LOADING == this._state) {
                 ccmLog.warn("i18n config is loading, please wait...");
                 reject({ isSuccess: false, curLang: this._language });
                 return;
             }
+
             let langSupport = CCMUtil.isValueInEnum(lang, CCMLanguageType);
             let oldLang = this._language;
             let newLang = langSupport ? lang : CCMLanguageType.EN;
@@ -59,18 +60,44 @@ export default class CCMI18nManager {
                 reject({ isSuccess: false, curLang: this._language });
                 return;
             }
-            this._language = newLang;
+
+            this._state = CCMI18nState.CONFIG_LOADING;
+            this.loadLanguage(newLang)
+                .then((val) => {
+                    this._language = newLang;
+                    this._state = CCMI18nState.CONFIG_LOAD_SUCCESS;
+                    this.reloadAllComponent();
+                    evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._language);
+                    resolve({ isSuccess: true, curLang: this._language });
+                })
+                .catch((err) => {
+                    this._state = CCMI18nState.CONFIG_LOAD_FAILED;
+                    reject({ isSuccess: false, curLang: this._language });
+                });
+        });
+    }
+
+    // 是否已加载指定语言配置
+    public isLanguageLoaded(lang?: string): boolean {
+        let checkLang = lang || this._language;
+        return this._textConf.has(checkLang) || this._textureConf.has(checkLang);
+    }
+
+    // 加载指定语言配置
+    public loadLanguage(lang: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            if (this.isLanguageLoaded(lang)) {
+                resolve(true);
+                return;
+            }
 
             let resArr: string[] = [];
-            resArr.push(`i18n/${this._language}/configs/text_${this._language}`);
-            resArr.push(`i18n/${this._language}/configs/texture_${this._language}`);
-            this._state = CCMI18nState.CONFIG_LOADING;
+            resArr.push(`i18n/${lang}/configs/text_${lang}`);
+            resArr.push(`i18n/${lang}/configs/texture_${lang}`);
             resLoader.load(resArr, cc.JsonAsset, (err: Error, assets: cc.JsonAsset[]) => {
                 if (err) {
-                    this._language = oldLang;
-                    this._state = CCMI18nState.CONFIG_LOAD_FAILED;
                     ccmLog.error(err);
-                    reject({ isSuccess: false, curLang: this._language });
+                    reject(false);
                     return;
                 }
 
@@ -78,12 +105,9 @@ export default class CCMI18nManager {
                 CCMDefaultKeeper.inst.cacheAsset(assets[0]);
                 CCMDefaultKeeper.inst.cacheAsset(assets[1]);
 
-                this._textConf.set(this._language, assets[0].json);
-                this._textureConf.set(this._language, assets[1].json);
-                this._state = CCMI18nState.CONFIG_LOAD_SUCCESS;
-                this.reloadAllComponent();
-                evtMgr.raiseEvent(CCMEvent.OPERATE_SET_LANGUAGE, this._language);
-                resolve({ isSuccess: true, curLang: this._language });
+                this._textConf.set(lang, assets[0].json);
+                this._textureConf.set(lang, assets[1].json);
+                resolve(true);
             });
         });
     }

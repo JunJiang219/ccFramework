@@ -43,7 +43,13 @@ export default class CCMHttpRequest {
         return CCMHttpRequest._instance;
     }
 
-    public async send(reqInfo: CCMIHttpReqInfo): Promise<any> {
+    /**
+     * 发送http请求
+     * @param reqInfo query参数对象
+     * @param preventOP 是否阻止玩家操作
+     * @returns 
+     */
+    public async send(reqInfo: CCMIHttpReqInfo, preventOP: boolean = true): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!reqInfo.timeout) reqInfo.timeout = 10000;              // 默认超时时间为10秒
             if (!reqInfo.timeoutRetry) reqInfo.timeoutRetry = 0;        // 默认不重试
@@ -66,7 +72,7 @@ export default class CCMHttpRequest {
 
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4) {
-                        preventOperate.enableOperate();
+                        if (preventOP) preventOperate.enableOperate();
                         if (xhr.status >= 200 && xhr.status < 300) {
                             reqInfo.reqStatus = CCMHttpReqStatus.SUCCESS;
                             resolve({ xhr, reqInfo });
@@ -86,7 +92,7 @@ export default class CCMHttpRequest {
                         }, reqInfo.retryInterval);
                     } else {
                         ccmLog.log('请求超时，重试次数已耗尽');
-                        preventOperate.enableOperate();
+                        if (preventOP) preventOperate.enableOperate();
                         reqInfo.reqStatus = CCMHttpReqStatus.TIMEOUT;
                         reject({ xhr, reqInfo });
                     }
@@ -95,7 +101,7 @@ export default class CCMHttpRequest {
                 xhr.send(reqInfo.data);
             };
 
-            preventOperate.disableOperate();
+            if (preventOP) preventOperate.disableOperate();
             attemptRequest(0);
         });
     }
