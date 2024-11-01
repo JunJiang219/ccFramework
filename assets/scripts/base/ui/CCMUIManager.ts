@@ -3,8 +3,9 @@
  */
 
 import CCMDefaultKeeper from "../res/CCMDefaultKeeper";
-import { ProgressCallback, resLoader } from "../res/CCMResLoader";
+import { resLoader } from "../res/CCMResLoader";
 import { CCMResReleaseTiming } from "../res/CCMResManager";
+import { ProgressCallback } from "../res/CCMResUtil";
 import { ccmLog } from "../utils/CCMLog";
 import { CCMLayerID, layerMgr } from "./CCMLayerManager";
 import CCMUIAnimation, { CCMUIAniName } from "./CCMUIAnimation";
@@ -241,7 +242,7 @@ export default class CCMUIManager {
         }
 
         let uiView: CCMUIView = null;
-        resLoader.load(uiConf.bundleName || "resources", uiPath, progressCallback, (err: Error, prefab: any) => {
+        resLoader.load(uiPath, progressCallback, (err: Error, prefab: any) => {
             if (err) {
                 // 加载报错
                 ccmLog.log(`getOrCreateUI loadRes ${uiId} failed, path: ${uiPath}, error: ${err}`);
@@ -278,7 +279,7 @@ export default class CCMUIManager {
                 }
                 completeCallback(uiView);
             });
-        });
+        }, uiConf.bundleName || "resources");
     }
 
     public open(uiId: number, uiArgs: any = null, aniOverCb: () => void = null, progressCallback: ProgressCallback = null, preLoadProgressCb: ProgressCallback = null): void {

@@ -20,20 +20,8 @@ import error = cc.error;
 import resources = cc.resources;
 import assetManager = cc.assetManager;
 import AssetManager = cc.AssetManager;
-
-export type ProgressCallback = (completedCount: number, totalCount: number, item: any) => void;
-export type CompleteCallback<T = any> = (error: Error, resource: any | any[], urls?: string[]) => void;
-export type IRemoteOptions = Record<string, any> | null;
-export type AssetType<T = Asset> = typeof Asset;
-
-interface CCMLoadResArgs<T extends Asset> {
-    bundle?: string;
-    dir?: string;
-    paths: string | string[];
-    type: AssetType<T> | null;
-    onProgress: ProgressCallback | null;
-    onComplete: CompleteCallback<T> | null;
-}
+import isValid = cc.isValid;
+import { AssetType, CCMILoadResArgs, CCMResUtil, CompleteCallback, IRemoteOptions, ProgressCallback } from "./CCMResUtil";
 
 export default class CCMResLoader {
 
@@ -47,135 +35,135 @@ export default class CCMResLoader {
         return CCMResLoader._instance;
     }
 
-    public parseLoadResArgs<T extends Asset>(
-        paths: string | string[],
-        type?: AssetType<T> | ProgressCallback | CompleteCallback | null,
-        onProgress?: AssetType<T> | ProgressCallback | CompleteCallback | null,
-        onComplete?: ProgressCallback | CompleteCallback | null
-    ) {
-        let pathsOut: any = paths;
-        let typeOut: any = type;
-        let onProgressOut: any = onProgress;
-        let onCompleteOut: any = onComplete;
-        if (onComplete === undefined) {
-            const isValidType = js.isChildClassOf(type as AssetType, Asset);
-            if (onProgress) {
-                onCompleteOut = onProgress as CompleteCallback;
-                if (isValidType) {
-                    onProgressOut = null;
-                }
-            } else if (onProgress === undefined && !isValidType) {
-                onCompleteOut = type as CompleteCallback;
-                onProgressOut = null;
-                typeOut = null;
-            }
-            if (onProgress !== undefined && !isValidType) {
-                onProgressOut = type as ProgressCallback;
-                typeOut = null;
-            }
-        }
-        let finalComplete = (error: Error, resource: any | any[], urls?: string[]) => {
-            if (this.resLeakChecker) {
-                if (resource instanceof Array) {
-                    resource.forEach(element => {
-                        this.resLeakChecker.traceAsset(element);
-                    });
-                } else {
-                    this.resLeakChecker.traceAsset(resource);
-                }
-            }
-            if (onCompleteOut) {
-                onCompleteOut(error, resource, urls);
-            }
-        }
-        return { paths: pathsOut, type: typeOut, onProgress: onProgressOut, onComplete: finalComplete };
-    }
+    private _loadByBundleAndArgs<T extends Asset>(bundle: AssetManager.Bundle, args: CCMILoadResArgs<T>): void {
+        let finishCb: CompleteCallback<T> | CompleteCallback<T[]> | null = (err, assets) => {
+            if (!err) {
+                if (assets instanceof Array) {
+                    // 加载一组资源
+                    if (this.resLeakChecker) {
+                        for (let i = 0, len = assets.length; i < len; ++i) {
+                            this.resLeakChecker.traceAsset(assets[i]);
+                        }
+                    }
 
-    private loadByBundleAndArgs<T extends Asset>(bundle: AssetManager.Bundle, args: CCMLoadResArgs<T>): void {
+                    if (args.keeper) {
+                        // 通过 keeper 对象接口加载
+                        if (isValid(args.keeper)) {
+                            // keeper 对象有效
+                            for (let i = 0, len = assets.length; i < len; ++i) {
+                                args.keeper.cacheAsset(assets[i]);
+                            }
+                        } else {
+                            // keeper 对象失效
+                            for (let i = 0, len = assets.length; i < len; ++i) {
+                                assets[i].addRef();
+                                assets[i].decRef();     // 这里引用需要先加后减，防止意外释放外部模块的引用
+                            }
+                        }
+                    }
+                } else {
+                    // 加载单个资源
+                    if (this.resLeakChecker) this.resLeakChecker.traceAsset(assets);
+
+                    if (args.keeper) {
+                        if (isValid(args.keeper)) {
+                            args.keeper.cacheAsset(assets);
+                        } else {
+                            assets.addRef();
+                            assets.decRef();     // 这里引用需要先加后减，防止意外释放外部模块的引用
+                        }
+                    }
+                }
+            }
+            if (args.onComplete) args.onComplete(err, assets);
+        }
+
         if (args.dir) {
-            bundle.loadDir(args.paths as string, args.type, args.onProgress, args.onComplete);
+            bundle.loadDir(args.dir, args.type!, args.onProgress!, finishCb);
         } else {
             if (typeof args.paths == 'string') {
-                bundle.load(args.paths, args.type, args.onProgress, args.onComplete);
+                bundle.load(args.paths, args.type!, args.onProgress!, finishCb);
             } else {
-                bundle.load(args.paths, args.type, args.onProgress, args.onComplete);
+                bundle.load(args.paths as string[], args.type!, args.onProgress!, finishCb);
             }
         }
     }
 
-    private loadByArgs<T extends Asset>(args: CCMLoadResArgs<T>) {
-        if (args.bundle) {
-            if (assetManager.bundles.has(args.bundle)) {
-                let bundle = assetManager.bundles.get(args.bundle);
-                this.loadByBundleAndArgs(bundle!, args);
+    private _loadByArgs<T extends Asset>(args: CCMILoadResArgs<T>) {
+        if (args.bundleName) {
+            let bundle = assetManager.bundles.get(args.bundleName);
+            if (bundle) {
+                this._loadByBundleAndArgs(bundle!, args);
             } else {
                 // 自动加载bundle
-                assetManager.loadBundle(args.bundle, (err, bundle) => {
+                assetManager.loadBundle(args.bundleName, (err, bundle) => {
                     if (!err) {
-                        this.loadByBundleAndArgs(bundle, args);
+                        this._loadByBundleAndArgs(bundle, args);
                     }
                 })
             }
         } else {
-            this.loadByBundleAndArgs(resources, args);
+            this._loadByBundleAndArgs(resources, args);
         }
     }
 
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(
-        bundleName: string,
-        paths?: string | string[] | AssetType<T> | ProgressCallback | CompleteCallback | null,
-        type?: AssetType<T> | ProgressCallback | CompleteCallback | null,
-        onProgress?: ProgressCallback | CompleteCallback | null,
-        onComplete?: CompleteCallback | null,
-    ) {
-        let args: CCMLoadResArgs<T> | null = null;
-        if (typeof paths === "string" || paths instanceof Array) {
-            args = this.parseLoadResArgs(paths, type, onProgress, onComplete);
-            args.bundle = bundleName;
-        } else {
-            args = this.parseLoadResArgs(bundleName, paths, type, onProgress);
-        }
-        this.loadByArgs(args);
+    /**
+     * 加载单个或一组资源
+     * @param paths 资源路径
+     * @param type 资源类型
+     * @param onProgress 加载进度回调
+     * @param onComplete 加载完成回调
+     * @param bundleName bundle名
+     */
+    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(paths: string | string[], onComplete?: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(): void {
+        let args = CCMResUtil.makeLoadResArgs.apply(this, arguments as any);
+        if (args) this._loadByArgs(args);
     }
 
-    public loadDir<T extends Asset>(bundleName: string, dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(
-        bundleName: string,
-        dir?: string | AssetType<T> | ProgressCallback | CompleteCallback | null,
-        type?: AssetType<T> | ProgressCallback | CompleteCallback | null,
-        onProgress?: ProgressCallback | CompleteCallback | null,
-        onComplete?: CompleteCallback | null,
-    ) {
-        let args: CCMLoadResArgs<T> | null = null;
-        if (typeof dir === "string") {
-            args = this.parseLoadResArgs(dir, type, onProgress, onComplete);
-            args.bundle = bundleName;
-        } else {
-            args = this.parseLoadResArgs(bundleName, dir, type, onProgress);
+    /**
+     * 加载指定目录资源
+     * @param dir 目录
+     * @param type 资源类型
+     * @param onProgress 加载进度回调
+     * @param onComplete 加载完成回调
+     * @param bundleName bundle名
+     */
+    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(dir: string, onComplete?: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(): void {
+        let args = CCMResUtil.makeLoadResArgs.apply(this, arguments as any);
+        if (args) {
+            args.dir = args.paths as string;
+            this._loadByArgs(args);
         }
-        args.dir = args.paths as string;
-        this.loadByArgs(args);
     }
 
+    /**
+     * 加载远程资源
+     * @param url 远程地址
+     * @param options 可选参数
+     * @param onComplete 加载完成回调
+     */
     public loadRemote<T extends Asset>(url: string, options: IRemoteOptions | null, onComplete?: CompleteCallback<T> | null): void;
     public loadRemote<T extends Asset>(url: string, onComplete?: CompleteCallback<T> | null): void;
-    public loadRemote<T extends Asset>(url: string, options: IRemoteOptions | CompleteCallback<T> | null, onComplete?: CompleteCallback<T> | null): void {
-        assetManager.loadRemote(url, options, onComplete);
+    public loadRemote<T extends Asset>(): void {
+        let args = CCMResUtil.makeLoadRemoteArgs.apply(this, arguments as any);
+        if (args) {
+            let finishCb: CompleteCallback<T> | CompleteCallback<T[]> | null = (err, assets) => {
+                if (!err) {
+                    if (this.resLeakChecker) this.resLeakChecker.traceAsset(assets);
+                    isValid(args!.keeper) && args!.keeper!.cacheAsset(assets);
+                }
+                if (args!.onComplete) args!.onComplete(err, assets);
+            }
+            assetManager.loadRemote(args.paths as string, args.options!, finishCb);
+        }
     }
 }
 

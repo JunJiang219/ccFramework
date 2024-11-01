@@ -1,37 +1,104 @@
-import { CCMResKeeper } from "./CCMResKeeper";
-import { CompleteCallback, ProgressCallback } from "./CCMResLoader";
-
-import Asset = cc.Asset;
-import Node = cc.Node;
-import Prefab = cc.Prefab;
-import instantiate = cc.instantiate;
-import { CCMResCacheArgs } from "./CCMResManager";
-
 /**
  * 资源使用相关工具类
  * 2020-1-18 by 宝爷
  */
 
+import { CCMResKeeper } from "./CCMResKeeper";
+
+import Asset = cc.Asset;
+import Node = cc.Node;
+import Prefab = cc.Prefab;
+import js = cc.js;
+import instantiate = cc.instantiate;
+import { CCMResCacheArgs } from "./CCMResManager";
+import { ccmLog } from "../utils/CCMLog";
+
+export type ProgressCallback = (finish: number, total: number, item: any) => void;
+export type CompleteCallback<T = any> = (error: Error, assets: any | any[]) => void;
+export type IRemoteOptions = Record<string, any> | null;
+export type AssetType<T = Asset> = typeof Asset;
+
+export interface CCMILoadResArgs<T extends Asset> {
+    paths?: string | string[];                                          // 资源路径
+    dir?: string;                                                       // 资源目录   
+    type?: AssetType<T> | null;                                         // 资源类型
+    options?: IRemoteOptions | null;                                    // 远程资源可选参数
+    onProgress?: ProgressCallback | null;                               // 加载进度回调
+    onComplete?: CompleteCallback<T> | null;                            // 加载完成回调
+    bundleName?: string;                                                // 资源所属bundle名称
+    keeper?: CCMResKeeper;                                              // 资源管理器，用于资源的缓存和释放
+}
+
 export class CCMResUtil {
+
     /**
-     * 开始加载资源
-     * @param bundle        assetbundle的路径
-     * @param url           资源url或url数组
-     * @param type          资源类型，默认为null
-     * @param onProgess     加载进度回调
-     * @param onCompleted   加载完成回调
+     * 构建bundle内资源加载参数结构体
      */
-    public static load<T extends Asset>(attachNode: Node, url: string | string[], onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, url: string | string[], onProgess: ProgressCallback | null, onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, url: string | string[], type: typeof Asset, onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, url: string | string[], type: typeof Asset, onProgess: ProgressCallback | null, onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, bundle: string, url: string | string[], onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, bundle: string, url: string | string[], onProgess: ProgressCallback | null, onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, bundle: string, url: string | string[], type: typeof Asset, onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, bundle: string, url: string | string[], type: typeof Asset, onProgess: ProgressCallback | null, onCompleted: CompleteCallback<T> | null): void;
-    public static load<T extends Asset>(attachNode: Node, ...args: any): void {
-        let keeper = CCMResUtil.getResKeeper(attachNode);
-        keeper!.load.apply(keeper, args);
+    public static makeLoadResArgs<T extends Asset>(): CCMILoadResArgs<T> | null {
+        if (arguments.length < 1) {
+            ccmLog.error(`makeLoadResArgs error ${arguments}`);
+            return null;
+        }
+
+        let resArgs: CCMILoadResArgs<T> = { bundleName: "resources" };
+        if (typeof arguments[0] == "string") {
+            resArgs.paths = arguments[0];
+        } else if (arguments[0] instanceof Array) {
+            resArgs.paths = arguments[0];
+        } else if (arguments[0] instanceof Object) {
+            return arguments[0];    // 已经是 CCMILoadResArgs
+        } else {
+            ccmLog.error(`makeLoadResArgs error ${arguments}`);
+            return null;
+        }
+
+        for (let i = 1; i < arguments.length; ++i) {
+            if (i == 1 && js.isChildClassOf(arguments[i], Asset)) {
+                // 判断是不是第一个参数type
+                resArgs.type = arguments[i];
+            } else if (typeof arguments[i] == "string") {
+                resArgs.bundleName = arguments[i];
+            } else if (typeof arguments[i] == "function") {
+                // 其他情况为函数
+                if (arguments.length > i + 1 && typeof arguments[i + 1] == "function") {
+                    resArgs.onProgress = arguments[i];
+                } else {
+                    resArgs.onComplete = arguments[i];
+                }
+            }
+        }
+
+        return resArgs;
+    }
+
+    /**
+     * 构建远程资源加载参数结构体
+     */
+    public static makeLoadRemoteArgs<T extends Asset>(): CCMILoadResArgs<T> | null {
+        if (arguments.length < 1) {
+            ccmLog.error(`makeLoadRemoteArgs error ${arguments}`);
+            return null;
+        }
+
+        let resArgs: CCMILoadResArgs<T> = {};
+        if (typeof arguments[0] == "string") {
+            resArgs.paths = arguments[0];
+        } else if (arguments[0] instanceof Object) {
+            return arguments[0];    // 已经是 CCMILoadResArgs
+        } else {
+            ccmLog.error(`makeLoadRemoteArgs error ${arguments}`);
+            return null;
+        }
+
+        for (let i = 1; i < arguments.length; ++i) {
+            if (typeof arguments[i] == "function") {
+                resArgs.onComplete = arguments[i];
+            } else if (arguments[i] instanceof Object) {
+                resArgs.options = arguments[i];
+            }
+        }
+
+        return resArgs;
     }
 
     /**

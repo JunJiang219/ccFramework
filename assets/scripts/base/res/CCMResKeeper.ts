@@ -1,8 +1,9 @@
-import { AssetType, CompleteCallback, ProgressCallback, resLoader } from "./CCMResLoader";
+import { resLoader } from "./CCMResLoader";
 import Asset = cc.Asset;
 import Component = cc.Component;
 import _decorator = cc._decorator;
 import { CCMResCacheArgs, resMgr } from "./CCMResManager";
+import { AssetType, CCMResUtil, CompleteCallback, IRemoteOptions, ProgressCallback } from "./CCMResUtil";
 
 /**
  * 资源引用类
@@ -20,25 +21,32 @@ export class CCMResKeeper extends Component {
     // 是否持有手动延迟释放的资源（只要缓存过，就赋值为true）
     public hasManualDelayRes: boolean = false;
 
-    /**
-     * 开始加载资源
-     * @param bundle        assetbundle的路径
-     * @param url           资源url或url数组
-     * @param type          资源类型，默认为null
-     * @param onProgess     加载进度回调
-     * @param onCompleted   加载完成回调
-     */
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load(...args: any) {
-        // 调用加载接口
-        resLoader.load.apply(resLoader, args);
+    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(paths: string | string[], onComplete?: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null, bundleName?: string): void;
+    public load<T extends Asset>(): void {
+        let args = CCMResUtil.makeLoadResArgs.apply(this, arguments as any);
+        args!.keeper = this;
+        resLoader.load(args as any);
+    }
+
+    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(dir: string, onComplete?: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null, bundleName?: string): void;
+    public loadDir<T extends Asset>(): void {
+        let args = CCMResUtil.makeLoadResArgs.apply(this, arguments as any);
+        args!.keeper = this;
+        resLoader.loadDir(args as any);
+    }
+
+    public loadRemote<T extends Asset>(url: string, options: IRemoteOptions | null, onComplete?: CompleteCallback<T> | null): void;
+    public loadRemote<T extends Asset>(url: string, onComplete?: CompleteCallback<T> | null): void;
+    public loadRemote<T extends Asset>(): void {
+        let args = CCMResUtil.makeLoadRemoteArgs.apply(this, arguments as any);
+        args!.keeper = this;
+        resLoader.loadRemote(args as any);
     }
 
     /**

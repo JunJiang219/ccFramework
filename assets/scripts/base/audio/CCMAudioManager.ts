@@ -66,7 +66,7 @@ export default class CCMAudioManager {
     public playBGM(name: string, options?: CCMIAudioPlayOptions) {
         this.stopBGM();
         let bundleName = options?.bundleName || "resources";
-        resLoader.load(bundleName, name, cc.AudioClip, (err: Error, audio: cc.AudioClip) => {
+        resLoader.load(name, cc.AudioClip, (err: Error, audio: cc.AudioClip) => {
             if (err) {
                 ccmLog.log(err);
                 return;
@@ -76,7 +76,7 @@ export default class CCMAudioManager {
             let loop = options?.loop || true;
             let volume = this._bgmBaseVolume * this._bgVolume;
             this._bgmId = cc.audioEngine.play(audio, loop, volume);
-        });
+        }, bundleName);
     }
 
     // 暂停背景音乐
@@ -107,7 +107,7 @@ export default class CCMAudioManager {
         saveOptions.bundleName = options?.bundleName || "resources";
         saveOptions.audioName = name;
 
-        resLoader.load(saveOptions.bundleName, name, cc.AudioClip, (err: Error, audio: cc.AudioClip) => {
+        resLoader.load(name, cc.AudioClip, (err: Error, audio: cc.AudioClip) => {
             if (err) {
                 ccmLog.log(err);
                 return;
@@ -122,7 +122,7 @@ export default class CCMAudioManager {
                     this._effPlayMap.delete(effId);
                 });
             }
-        });
+        }, saveOptions.bundleName);
     }
 
     // 停止指定音效

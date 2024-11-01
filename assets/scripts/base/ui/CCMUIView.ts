@@ -3,7 +3,7 @@
  */
 
 import { CCMResKeeper } from "../res/CCMResKeeper";
-import { ProgressCallback } from "../res/CCMResLoader";
+import { ProgressCallback } from "../res/CCMResUtil";
 import { CCMIUIInfo } from "./CCMUIManager";
 
 // UI显示类型
