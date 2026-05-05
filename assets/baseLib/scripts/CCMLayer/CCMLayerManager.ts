@@ -2,7 +2,7 @@
  * 层级管理器
  */
 
-import { find, isValid, Layers, Node, UITransform, Widget } from "cc";
+import { BlockInputEvents, find, isValid, Layers, Node, UITransform, Widget } from "cc";
 import CCMSingleton from "../CCMBase/CCMSingleton";
 
 // 层级ID，从1开始
@@ -13,6 +13,7 @@ export enum CCMLayerID {
     POPUP,      // 弹窗层。用于打开具体的功能界面或二级菜单
     NOTICE,     // 提示层。用于显示强提示、确认框或系统级通知，拥有较高的中断优先级
     TOPMOST,    // 最高层级，用于显示必须完全不被遮挡的视觉反馈或全局性引导。
+    TOPBLOCK,   // 最高拦截层，用于拦截所有事件，防止事件穿透，其下不挂任何节点
 }
 
 export default class CCMLayerManager extends CCMSingleton {
@@ -78,7 +79,22 @@ export default class CCMLayerManager extends CCMSingleton {
             let node = this.createFullScreenNode(`layer_${layerId}`);
             node.setSiblingIndex(layerIndex);
             this._layerMap.set(layerId, node);
+
+            if (layerId === CCMLayerID.TOPBLOCK) {
+                node.addComponent(BlockInputEvents);
+                node.getComponent(BlockInputEvents).enabled = false;
+            }
+
             return node;
+        }
+    }
+
+    public enableTopBlock(enable: boolean) {
+        let topBlock = this.getLayer(CCMLayerID.TOPBLOCK);
+        if (enable) {
+            topBlock.getComponent(BlockInputEvents).enabled = true;
+        } else {
+            topBlock.getComponent(BlockInputEvents).enabled = false;
         }
     }
 

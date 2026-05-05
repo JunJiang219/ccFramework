@@ -5,7 +5,7 @@ export class CCMNodeUtils {
     /**
      * 添加全屏Widget组件
      * @param node 待添加节点
-     * @param target 对齐目标节点，默认为 Canvas
+     * @param target 对齐目标节点
      * @returns 
      */
     public static addFullScreenWidget(node: Node, target?: Node) {
