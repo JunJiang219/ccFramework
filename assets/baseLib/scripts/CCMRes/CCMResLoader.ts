@@ -74,7 +74,7 @@ export default class CCMResLoader extends CCMSingleton {
         if (args.path) {
             bundle.load(args.path, args.type, args.onProgress, args.onComplete);
         } else if (args.paths) {
-            bundle.load(args.path, args.type, args.onProgress, args.onComplete);
+            bundle.load(args.paths, args.type, args.onProgress, args.onComplete);
         } else if (args.dir) {
             bundle.loadDir(args.dir, args.type, args.onProgress, args.onComplete);
         } else if (args.url) {
@@ -156,28 +156,5 @@ export default class CCMResLoader extends CCMSingleton {
     public loadRemote<T extends Asset>() {
         let args: CCMLoadResArgs<T> | null = CCMResArgsBuilder.makeLoadRemoteArgs.apply(this, arguments);
         this.loadByArgs(args);
-    }
-
-    /**
-     * Promise 形式加载目录内的 JSON 资源，返回以文件名为键的 JSON 对象字典
-     * @param bundleName  bundle 名称
-     * @param dir         目录路径（如 'config'）
-     * @returns           { [name: string]: any } 字典，失败时返回 null
-     */
-    public loadDirJsonAsync(bundleName: string, dir: string): Promise<Record<string, any> | null> {
-        return new Promise<Record<string, any> | null>(resolve => {
-            this.loadDir<JsonAsset>(bundleName, dir, JsonAsset, (err: Error, assets: JsonAsset[]) => {
-                if (err) {
-                    CCMLogger.getInstance().error(`CCMResLoader.loadDirJsonAsync: bundle=${bundleName} dir=${dir}`, err);
-                    resolve(null);
-                    return;
-                }
-                const result: Record<string, any> = {};
-                for (const asset of assets) {
-                    result[asset.name] = asset.json;
-                }
-                resolve(result);
-            });
-        });
     }
 }
