@@ -2,6 +2,8 @@
  * 日志打印
  */
 
+import CCMSingleton from "../CCMBase/CCMSingleton";
+
 // 日志等级
 export enum CCMLogLevel {
     TRACE,      // 追踪
@@ -18,17 +20,10 @@ const color_warn = "\x1b[33m";       // warn(黄色)
 const color_error = "\x1b[31m";      // error(红色)
 const color_reset = "\x1b[0m";       // 后续文本重置样式
 
-export default class CCMLogger {
+export default class CCMLogger extends CCMSingleton {
 
-    private static _instance: CCMLogger = null;
     private _logLevel: CCMLogLevel = CCMLogLevel.TRACE;
-    private constructor() { }
-    public static getInstance(): CCMLogger {
-        if (CCMLogger._instance == null) {
-            CCMLogger._instance = new CCMLogger();
-        }
-        return CCMLogger._instance;
-    }
+    protected constructor() { super(); }
 
     // 将数字转换为字符串，并在前面拼接指定数量的零
     private formatNumber(num: number, length: number = 2): string {

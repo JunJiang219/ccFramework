@@ -4,6 +4,7 @@
 
 import { Asset, isValid } from "cc";
 import { CCMResKeeper } from "./CCMResKeeper";
+import CCMSingleton from "../CCMBase/CCMSingleton";
 
 const RES_UPDATE_INTERVAL = 5;          // 资源管理器更新间隔（单位：秒）
 
@@ -19,18 +20,17 @@ function getCurTS() {
     return Math.floor(Date.now() / 1000);
 }
 
-export class CCMResManager {
-    private static _instance: CCMResManager = null;
-    private constructor() { }
-    public static getInstance(): CCMResManager {
-        if (CCMResManager._instance === null) {
-            CCMResManager._instance = new CCMResManager();
-        }
-        return CCMResManager._instance;
-    }
+export class CCMResManager extends CCMSingleton {
+    protected constructor() { super(); }
 
     private _resMap: Map<CCMResKeeper, CCMResCacheInfo> = new Map<CCMResKeeper, CCMResCacheInfo>();
     private _updateElapsed: number = 0;
+
+    /** 强制释放所有托管资源，重置更新计时器 */
+    public override reset(): void {
+        this.releaseAssets(undefined, true);
+        this._updateElapsed = 0;
+    }
 
     /**
      * 缓存指定资源

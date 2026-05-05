@@ -15,18 +15,12 @@ import { CCMResLeakChecker } from "./CCMResLeakChecker";
 import { AssetType, CCMLoadResArgs, CompleteCallback, IRemoteOptions, ProgressCallback } from "./CCMResDefs";
 import { CCMResArgsBuilder } from "./CCMResArgsBuilder";
 import CCMLogger from "../CCMLog/CCMLogger";
+import CCMSingleton from "../CCMBase/CCMSingleton";
 
-export default class CCMResLoader {
+export default class CCMResLoader extends CCMSingleton {
 
     public resLeakChecker: CCMResLeakChecker = null;
-    private static _instance: CCMResLoader = null;
-    private constructor() { }
-    public static getInstance(): CCMResLoader {
-        if (!CCMResLoader._instance) {
-            CCMResLoader._instance = new CCMResLoader();
-        }
-        return CCMResLoader._instance;
-    }
+    protected constructor() { super(); }
 
     private loadByBundleAndArgs<T extends Asset>(bundle: AssetManager.Bundle, args: CCMLoadResArgs<T>): void {
         // 完成回调重组

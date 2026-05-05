@@ -2,7 +2,8 @@
  * 层级管理器
  */
 
-import { find, Layers, Node, UITransform, Widget } from "cc";
+import { find, isValid, Layers, Node, UITransform, Widget } from "cc";
+import CCMSingleton from "../CCMBase/CCMSingleton";
 
 // 层级ID，从1开始
 export enum CCMLayerID {
@@ -14,16 +15,17 @@ export enum CCMLayerID {
     TOPMOST,    // 最高层级，用于显示必须完全不被遮挡的视觉反馈或全局性引导。
 }
 
-export default class CCMLayerManager {
-    private static _instance: CCMLayerManager = null;
-    private constructor() {}
-    public static getInstance(): CCMLayerManager {
-        if (null == CCMLayerManager._instance) {
-            CCMLayerManager._instance = new CCMLayerManager();
-        }
-        return CCMLayerManager._instance;
-    }
+export default class CCMLayerManager extends CCMSingleton {
+    protected constructor() { super(); }
     private _layerMap: Map<number, Node> = new Map();
+
+    /** 销毁所有层级节点并清空映射表 */
+    public override reset(): void {
+        this._layerMap.forEach(node => {
+            if (isValid(node)) node.destroy();
+        });
+        this._layerMap.clear();
+    }
 
 
     // 创建全屏节点

@@ -6,6 +6,8 @@
  * ============================================================
  */
 
+import CCMSingleton from "../CCMBase/CCMSingleton";
+
 export type CCMAnimStep = () => Promise<void>;
 
 // ----------------------------------------------------------------
@@ -82,14 +84,8 @@ export class CCMAnimSequence {
 // ----------------------------------------------------------------
 // CCMAnimSequencer — 编排器入口
 // ----------------------------------------------------------------
-export class CCMAnimSequencer {
-    private static _instance: CCMAnimSequencer | null = null;
-    public static getInstance(): CCMAnimSequencer {
-        if (!CCMAnimSequencer._instance) {
-            CCMAnimSequencer._instance = new CCMAnimSequencer();
-        }
-        return CCMAnimSequencer._instance;
-    }
+export class CCMAnimSequencer extends CCMSingleton {
+    protected constructor() { super(); }
 
     /**
      * 串行：一步接一步执行

@@ -3,6 +3,7 @@
 */
 
 import CCMLogger from "../CCMLog/CCMLogger";
+import CCMSingleton from "../CCMBase/CCMSingleton";
 
 // 事件优先级（数值越大，优先级越高）
 export enum CCMEventPriority {
@@ -31,17 +32,15 @@ function sortListener(a: CCMCallBackTarget, b: CCMCallBackTarget): number {
     return b.priority - a.priority;
 }
 
-export class CCMEventManager {
-    private static _instance: CCMEventManager = null;
-    private constructor() { }
-    public static getInstance(): CCMEventManager {
-        if (!this._instance) {
-            this._instance = new CCMEventManager();
-        }
-        return this._instance;
-    }
+export class CCMEventManager extends CCMSingleton {
+    protected constructor() { super(); }
 
     private _eventListeners: { [key: string]: CCMCallBackTarget[] } = {};
+
+    /** 清空所有事件监听 */
+    public override reset(): void {
+        this._eventListeners = {};
+    }
 
     private getEventListenersIndex(eventName: string, callBack: CCMEventCallFunc, target?: any): number {
         let index = -1;

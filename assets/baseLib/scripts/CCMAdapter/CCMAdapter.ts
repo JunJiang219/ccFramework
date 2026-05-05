@@ -11,6 +11,7 @@
 import { find, ResolutionPolicy, screen, size, Size, UITransform, view } from "cc";
 import { CCMEventManager } from "../CCMEvent/CCMEventManager";
 import { CCMEvent } from "../CCMEvent/CCMEventDefs";
+import CCMSingleton from "../CCMBase/CCMSingleton";
 
 // 设备方向
 export enum CCMDeviceOrientation {
@@ -19,15 +20,15 @@ export enum CCMDeviceOrientation {
     AUTO,
 }
 
-export default class CCMAdapter {
+export default class CCMAdapter extends CCMSingleton {
+    protected constructor() { super(); }
 
-    private static _instance: CCMAdapter = null;
-    private constructor() { }
-    public static getInstance(): CCMAdapter {
-        if (null == CCMAdapter._instance) {
-            CCMAdapter._instance = new CCMAdapter();
-        }
-        return CCMAdapter._instance;
+    /** 清空缓存的分辨率数据，下次 resize() 时会重新计算 */
+    public override reset(): void {
+        this._originalDR = null;
+        this._originalDR_bigNum = 0;
+        this._originalDR_smallNum = 0;
+        this._currentDR = null;
     }
 
     private _originalDR: Size = null;         // 原始的设计分辨率

@@ -15,6 +15,7 @@ import { ProgressCallback } from "../CCMRes/CCMResDefs";
 import { CCMUIAnimation, CCMUIAniName } from "./CCMUIAnimation";
 import { CCMUIShowType, CCMUIView } from "./CCMUIView";
 import CCMLogger from "../CCMLog/CCMLogger";
+import CCMSingleton from "../CCMBase/CCMSingleton";
 
 // UI打开参数
 export interface CCMUIArgs {
@@ -59,14 +60,13 @@ function sortUIStack(uiA: CCMUIInfo, uiB: CCMUIInfo) {
     }
 }
 
-export class CCMUIManager {
-    private static _instance: CCMUIManager = null;
-    private constructor() {}
-    public static getInstance(): CCMUIManager {
-        if (null == CCMUIManager._instance) {
-            CCMUIManager._instance = new CCMUIManager();
-        }
-        return CCMUIManager._instance;
+export class CCMUIManager extends CCMSingleton {
+    protected constructor() { super(); }
+
+    /** 关闭所有界面并清理缓存，重置为初始状态（UI配置和外部委托保持不变） */
+    public override reset(): void {
+        this.closeAll();
+        this.clearCache();
     }
 
     /** 是否正在关闭UI */
