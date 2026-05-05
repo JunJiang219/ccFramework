@@ -1,4 +1,4 @@
-import { Asset } from "cc";
+import { Asset, Constructor } from "cc";
 
 /**
  * 资源模块共享类型定义
@@ -8,33 +8,38 @@ import { Asset } from "cc";
 /** 加载进度回调 */
 export type ProgressCallback = (completedCount: number, totalCount: number, item: any) => void;
 
-/** 加载完成回调 */
-export type CompleteCallback<T = any> = (error: Error, resource: any | any[], urls?: string[]) => void;
-
-/** 远程加载可选参数 */
-export type IRemoteOptions = Record<string, any> | null;
-
-/** 资源类型（Asset 或其子类） */
-export type AssetType<T = Asset> = typeof Asset;
+/** 远程加载可选参数（透传给 cc.assetManager.loadRemote） */
+export type IRemoteOptions = Record<string, any>;
 
 /**
  * 资源持有者接口（仅约定 cacheAsset 能力）
- * 由 CCMResKeeper 实现，用于 CCMLoadResArgs 等处的类型声明，避免直接引用 CCMResKeeper 类
+ * 由 CCMResKeeper 实现，用于 LoadOptions 等处的类型声明，避免直接引用 CCMResKeeper 类
  */
 export interface ICCMResKeeper {
     cacheAsset(asset: Asset): void;
 }
 
-/** 加载资源参数（单路径/多路径/目录） */
-export interface CCMLoadResArgs<T extends Asset = Asset> {
-    bundleName?: string;
+/**
+ * 通用资源加载选项
+ * 适用于 load / loadMany / loadDir
+ */
+export interface LoadOptions<T extends Asset = Asset> {
+    /** bundle 名称，缺省为 'resources' */
+    bundle?: string;
+    /** 资源类型，可缺省由路径推导 */
+    type?: Constructor<T>;
+    /** 加载进度回调 */
+    onProgress?: ProgressCallback;
+    /** 资源持有者，加载完成后会自动 cacheAsset 以便随节点销毁释放 */
     keeper?: ICCMResKeeper;
-    path?: string;
-    paths?: string[];
-    dir?: string;
-    url?: string;
-    type?: AssetType<T> | null;
-    options?: IRemoteOptions | null;
-    onProgress?: ProgressCallback | null;
-    onComplete?: CompleteCallback<T> | null;
+}
+
+/**
+ * 远程资源加载选项
+ */
+export interface RemoteLoadOptions {
+    /** 透传给 cc.assetManager.loadRemote 的原生参数（如 { ext: '.png' }） */
+    remote?: IRemoteOptions;
+    /** 资源持有者，加载完成后会自动 cacheAsset */
+    keeper?: ICCMResKeeper;
 }

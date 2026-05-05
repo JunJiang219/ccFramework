@@ -1,6 +1,5 @@
 import { _decorator, Asset, CCInteger, Component } from "cc";
-import { AssetType, CCMLoadResArgs, CompleteCallback, IRemoteOptions, ProgressCallback } from "./CCMResDefs";
-import { CCMResArgsBuilder } from "./CCMResArgsBuilder";
+import { LoadOptions, RemoteLoadOptions } from "./CCMResDefs";
 import CCMResLoader from "./CCMResLoader";
 import { CCMResManager } from "./CCMResManager";
 import { CCMEventManager } from "../CCMEvent/CCMEventManager";
@@ -8,9 +7,9 @@ import { CCMEventManager } from "../CCMEvent/CCMEventManager";
 /**
  * 资源引用类
  * 1. 提供加载功能，并记录加载过的资源
- * 2. 在node释放时自动清理加载过的资源
+ * 2. 在 node 释放时自动清理加载过的资源
  * 3. 无需手动添加记录
- * 
+ *
  * 2019-12-13 by 宝爷
  */
 const { ccclass, property } = _decorator;
@@ -22,74 +21,35 @@ export class CCMResKeeper extends Component {
     delayReleaseTime: number = 0;    // 延迟释放时间(单位：秒)
 
     /**
-     * 加载指定资源
-     * @param bundleName    bundle的名字
-     * @param paths         单个资源路径 | 一组资源路径
-     * @param type          资源类型，默认为null
-     * @param onProgress    加载进度回调
-     * @param onComplete    加载完成回调
+     * 加载单个资源（自动以本组件为 keeper，节点销毁时自动释放）
      */
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>() {
-        let args: CCMLoadResArgs<T> | null = CCMResArgsBuilder.makeLoadResArgs.apply(this, arguments);
-        if (!args) return;
-
-        args.keeper = this;
-        CCMResLoader.getInstance().load(args as any);
+    public load<T extends Asset>(path: string, opts: LoadOptions<T> = {}): Promise<T> {
+        return CCMResLoader.getInstance().load<T>(path, { ...opts, keeper: this });
     }
 
     /**
-     * 加载目录资源
-     * @param bundleName    bundle的名字
-     * @param dir           资源目录
-     * @param type          资源类型，默认为null
-     * @param onProgress    加载进度回调
-     * @param onComplete    加载完成回调
+     * 加载多个资源
      */
-    public loadDir<T extends Asset>(bundleName: string, dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>() {
-        let args: CCMLoadResArgs<T> | null = CCMResArgsBuilder.makeLoadDirArgs.apply(this, arguments);
-        if (!args) return;
+    public loadMany<T extends Asset>(paths: string[], opts: LoadOptions<T> = {}): Promise<T[]> {
+        return CCMResLoader.getInstance().loadMany<T>(paths, { ...opts, keeper: this });
+    }
 
-        args.keeper = this;
-        CCMResLoader.getInstance().loadDir(args as any);
+    /**
+     * 加载整个目录
+     */
+    public loadDir<T extends Asset>(dir: string, opts: LoadOptions<T> = {}): Promise<T[]> {
+        return CCMResLoader.getInstance().loadDir<T>(dir, { ...opts, keeper: this });
     }
 
     /**
      * 加载远程资源
-     * @param url           远程资源url
-     * @param options       加载可选参数
-     * @param onComplete    加载完成回调
      */
-    public loadRemote<T extends Asset>(url: string, options: IRemoteOptions | null, onComplete?: CompleteCallback<T> | null): void;
-    public loadRemote<T extends Asset>(url: string, onComplete?: CompleteCallback<T> | null): void;
-    public loadRemote<T extends Asset>(url: string, options: IRemoteOptions | CompleteCallback<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public loadRemote<T extends Asset>() {
-        let args: CCMLoadResArgs<T> | null = CCMResArgsBuilder.makeLoadRemoteArgs.apply(this, arguments);
-        if (!args) return;
-
-        args.keeper = this;
-        CCMResLoader.getInstance().loadRemote(args as any);
+    public loadRemote<T extends Asset>(url: string, opts: RemoteLoadOptions = {}): Promise<T> {
+        return CCMResLoader.getInstance().loadRemote<T>(url, { ...opts, keeper: this });
     }
 
     /**
-     * 缓存资源
-     * @param asset 
-     * @param args 
+     * 缓存资源（手动追加托管）
      */
     public cacheAsset(asset: Asset) {
         CCMResManager.getInstance().cacheAsset(this, asset);
@@ -108,7 +68,7 @@ export class CCMResKeeper extends Component {
     }
 
     /**
-     * 组件销毁时自动释放所有keep的资源
+     * 组件销毁时自动释放所有 keep 的资源
      */
     protected onDestroy() {
         this.unRegisterGlobalEvents();
@@ -118,7 +78,6 @@ export class CCMResKeeper extends Component {
 
     /**
      * 注册本地事件（节点事件）
-     *
      */
     protected registerLocalEvents() {
         // override in subclass
@@ -132,7 +91,7 @@ export class CCMResKeeper extends Component {
     }
 
     /**
-     * 注册全局事件（eventBus管理事件）
+     * 注册全局事件（eventBus 管理事件）
      */
     protected registerGlobalEvents() {
         // override in subclass

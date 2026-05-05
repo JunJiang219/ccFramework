@@ -271,37 +271,36 @@ export class CCMUIManager extends CCMSingleton {
         }
         let bundleName = this._uiConf[uiId].bundleName || "resources";
 
-        const resLoader = CCMResLoader.getInstance();
-        resLoader.load(bundleName, uiPath, progressCallback, (err: Error, prefab: Prefab) => {
-            // 检查加载资源错误
-            if (err) {
+        CCMResLoader.getInstance()
+            .load<Prefab>(uiPath, { bundle: bundleName, type: Prefab, onProgress: progressCallback })
+            .then((prefab) => {
+                // 检查实例化错误
+                let uiNode: Node = instantiate(prefab);
+                if (null == uiNode) {
+                    CCMLogger.getInstance().log(`getOrCreateUI instantiate ${uiId} faile, path: ${uiPath}`);
+                    completeCallback(null);
+                    return;
+                }
+                // 检查组件获取错误
+                uiView = uiNode.getComponent(CCMUIView);
+                if (null == uiView) {
+                    CCMLogger.getInstance().log(`getOrCreateUI getComponent ${uiId} faile, path: ${uiPath}`);
+                    uiNode.destroy();
+                    completeCallback(null);
+                    return;
+                }
+
+                // 异步加载UI预加载的资源
+                this.autoLoadRes(uiView, () => {
+                    uiView.init(uiId, uiArgs);
+                    uiView.cacheAsset(prefab); // 缓存自身预制体
+                    completeCallback(uiView);
+                });
+            })
+            .catch((err: Error) => {
                 CCMLogger.getInstance().log(`getOrCreateUI loadRes ${uiId} faile, path: ${uiPath} error: ${err}`);
                 completeCallback(null);
-                return;
-            }
-            // 检查实例化错误
-            let uiNode: Node = instantiate(prefab);
-            if (null == uiNode) {
-                CCMLogger.getInstance().log(`getOrCreateUI instantiate ${uiId} faile, path: ${uiPath}`);
-                completeCallback(null);
-                return;
-            }
-            // 检查组件获取错误
-            uiView = uiNode.getComponent(CCMUIView);
-            if (null == uiView) {
-                CCMLogger.getInstance().log(`getOrCreateUI getComponent ${uiId} faile, path: ${uiPath}`);
-                uiNode.destroy();
-                completeCallback(null);
-                return;
-            }
-
-            // 异步加载UI预加载的资源
-            this.autoLoadRes(uiView, () => {
-                uiView.init(uiId, uiArgs);
-                uiView.cacheAsset(prefab); // 缓存自身预制体
-                completeCallback(uiView);
             });
-        });
     }
 
     /**

@@ -1,160 +1,132 @@
 /**
- * ResLoader2，封装资源的加载和卸载接口，隐藏新老资源底层差异
- * 1. 加载资源接口
- * 2. 卸载资源接口
+ * CCMResLoader：封装资源加载接口，隐藏 cc.assetManager 底层差异
+ * 1. Promise 化的 load / loadMany / loadDir / loadRemote
+ * 2. 自动按需 loadBundle
+ * 3. 加载完成后统一处理：泄漏跟踪 + keeper 缓存
  */
 
-/*import { Asset, js, error, Constructor, resources, __private, assetManager, AssetManager } from "cc";
-export type ProgressCallback = __private.cocos_core_asset_manager_shared_ProgressCallback;
-export type CompleteCallback<T = any> = __private.cocos_core_asset_manager_shared_CompleteCallbackWithData;
-export type IRemoteOptions = __private.cocos_core_asset_manager_shared_IRemoteOptions;
-export type AssetType<T = Asset> = Constructor<T>;*/
-
-import { Asset, assetManager, AssetManager, isValid, JsonAsset, resources } from "cc";
+import { Asset, assetManager, AssetManager, isValid, resources } from "cc";
 import { CCMResLeakChecker } from "./CCMResLeakChecker";
-import { AssetType, CCMLoadResArgs, CompleteCallback, IRemoteOptions, ProgressCallback } from "./CCMResDefs";
-import { CCMResArgsBuilder } from "./CCMResArgsBuilder";
-import CCMLogger from "../CCMLog/CCMLogger";
+import { ICCMResKeeper, LoadOptions, RemoteLoadOptions } from "./CCMResDefs";
 import CCMSingleton from "../CCMBase/CCMSingleton";
+
+/** 默认 bundle 名 */
+const DEFAULT_BUNDLE = "resources";
+
+/** bundle 内部加载执行器：拿到 bundle 后由它发起真正的 load 调用 */
+type BundleLoader = (bundle: AssetManager.Bundle, onComplete: (err: Error, res: any) => void) => void;
 
 export default class CCMResLoader extends CCMSingleton {
 
     public resLeakChecker: CCMResLeakChecker = null;
     protected constructor() { super(); }
 
-    private loadByBundleAndArgs<T extends Asset>(bundle: AssetManager.Bundle, args: CCMLoadResArgs<T>): void {
-        // 完成回调重组
-        let onCompleteOut = args.onComplete;
-        let finalComplete = (error: Error, assets: any | any[], urls?: string[]) => {
-            if (!error) {
-                if (assets instanceof Array) {
-                    if (this.resLeakChecker) {
-                        assets.forEach(element => {
-                            this.resLeakChecker.traceAsset(element);
-                        });
-                    }
-    
-                    if (args.keeper) {
-                        // 通过 keeper 对象接口加载
-                        if (isValid(args.keeper)) {
-                            // keeper 对象有效
-                            for (let i = 0, len = assets.length; i < len; ++i) {
-                                args.keeper.cacheAsset(assets[i]);
-                            }
-                        } else {
-                            // keeper 对象失效
-                            for (let i = 0, len = assets.length; i < len; ++i) {
-                                assets[i].addRef();
-                                assets[i].decRef();     // 这里引用需要先加后减，防止意外释放外部模块的引用
-                            }
-                        }
-                    }
-                } else {
-                    if (this.resLeakChecker) {
-                        this.resLeakChecker.traceAsset(assets);
-                    }
-    
-                    if (args.keeper) {
-                        if (isValid(args.keeper)) {
-                            args.keeper.cacheAsset(assets);
-                        } else {
-                            assets.addRef();
-                            assets.decRef();
-                        }
-                    }
-                }
-            }
-
-            if (onCompleteOut) {
-                onCompleteOut(error, assets, urls);
-            }
-        }
-        args.onComplete = finalComplete;
-
-        if (args.path) {
-            bundle.load(args.path, args.type, args.onProgress, args.onComplete);
-        } else if (args.paths) {
-            bundle.load(args.paths, args.type, args.onProgress, args.onComplete);
-        } else if (args.dir) {
-            bundle.loadDir(args.dir, args.type, args.onProgress, args.onComplete);
-        } else if (args.url) {
-            assetManager.loadRemote(args.url, args.options, args.onComplete);
-        } else {
-            CCMLogger.getInstance().error("call loadByBundleAndArgs() by wrong arguments: ", args);
-        }
-    }
-
-    private loadByArgs<T extends Asset>(args: CCMLoadResArgs<T>) {
-        if (args.bundleName) {
-            if (assetManager.bundles.has(args.bundleName)) {
-                let bundle = assetManager.bundles.get(args.bundleName);
-                this.loadByBundleAndArgs(bundle!, args);
-            } else {
-                // 自动加载bundle
-                assetManager.loadBundle(args.bundleName, (err, bundle) => {
-                    if (!err) {
-                        this.loadByBundleAndArgs(bundle, args);
-                    }
-                })
-            }
-        } else {
-            this.loadByBundleAndArgs(resources, args);
-        }
+    /**
+     * 加载单个资源
+     * @example
+     * const prefab = await loader.load<Prefab>('ui/MainView', { bundle: 'ui', keeper: this });
+     */
+    public load<T extends Asset>(path: string, opts: LoadOptions<T> = {}): Promise<T> {
+        return this._loadFromBundle<T>(opts, (bundle, cb) => {
+            bundle.load(path, opts.type ?? null, opts.onProgress ?? null, cb);
+        });
     }
 
     /**
-     * 加载指定资源
-     * @param bundleName    bundle的名字
-     * @param paths         单个资源路径 | 一组资源路径
-     * @param type          资源类型，默认为null
-     * @param onProgress    加载进度回调
-     * @param onComplete    加载完成回调
+     * 加载多个资源
+     * @example
+     * const sprites = await loader.loadMany<SpriteFrame>(paths, { bundle: 'common' });
      */
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(bundleName: string, paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onProgress: ProgressCallback | null, onComplete: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>(paths: string | string[], type: AssetType<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public load<T extends Asset>() {
-        let args: CCMLoadResArgs<T> | null = CCMResArgsBuilder.makeLoadResArgs.apply(this, arguments);
-        this.loadByArgs(args);
+    public loadMany<T extends Asset>(paths: string[], opts: LoadOptions<T> = {}): Promise<T[]> {
+        return this._loadFromBundle<T[]>(opts, (bundle, cb) => {
+            bundle.load(paths, opts.type ?? null, opts.onProgress ?? null, cb);
+        });
     }
 
     /**
-     * 加载目录资源
-     * @param bundleName    bundle的名字
-     * @param dir           资源目录
-     * @param type          资源类型，默认为null
-     * @param onProgress    加载进度回调
-     * @param onComplete    加载完成回调
+     * 加载整个目录
+     * @example
+     * const audios = await loader.loadDir<AudioClip>('audio', { type: AudioClip, keeper: this });
      */
-    public loadDir<T extends Asset>(bundleName: string, dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(bundleName: string, dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, onProgress: ProgressCallback | null, onComplete: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>(dir: string, type: AssetType<T> | null, onComplete?: CompleteCallback<T[]> | null): void;
-    public loadDir<T extends Asset>() {
-        let args: CCMLoadResArgs<T> | null = CCMResArgsBuilder.makeLoadDirArgs.apply(this, arguments);
-        this.loadByArgs(args);
+    public loadDir<T extends Asset>(dir: string, opts: LoadOptions<T> = {}): Promise<T[]> {
+        return this._loadFromBundle<T[]>(opts, (bundle, cb) => {
+            bundle.loadDir(dir, opts.type ?? null, opts.onProgress ?? null, cb);
+        });
     }
 
     /**
      * 加载远程资源
-     * @param url           远程资源url
-     * @param options       加载可选参数
-     * @param onComplete    加载完成回调
+     * @example
+     * const tex = await loader.loadRemote<Texture2D>('https://x.png', { remote: { ext: '.png' } });
      */
-    public loadRemote<T extends Asset>(url: string, options: IRemoteOptions | null, onComplete?: CompleteCallback<T> | null): void;
-    public loadRemote<T extends Asset>(url: string, onComplete?: CompleteCallback<T> | null): void;
-    public loadRemote<T extends Asset>(url: string, options: IRemoteOptions | CompleteCallback<T> | null, onComplete?: CompleteCallback<T> | null): void;
-    public loadRemote<T extends Asset>() {
-        let args: CCMLoadResArgs<T> | null = CCMResArgsBuilder.makeLoadRemoteArgs.apply(this, arguments);
-        this.loadByArgs(args);
+    public loadRemote<T extends Asset>(url: string, opts: RemoteLoadOptions = {}): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            assetManager.loadRemote<T>(url, opts.remote ?? null, (err, asset) => {
+                if (err) return reject(err);
+                this._postProcess(asset, opts.keeper);
+                resolve(asset);
+            });
+        });
+    }
+
+    /**
+     * 私有：根据 opts.bundle 找到 / 加载目标 bundle，然后执行实际加载逻辑
+     * 复用于 load / loadMany / loadDir
+     */
+    private _loadFromBundle<R>(opts: LoadOptions, doLoad: BundleLoader): Promise<R> {
+        return new Promise<R>((resolve, reject) => {
+            const onLoaded = (err: Error, res: any) => {
+                if (err) return reject(err);
+                this._postProcess(res, opts.keeper);
+                resolve(res);
+            };
+
+            const bundleName = opts.bundle || DEFAULT_BUNDLE;
+            const cached = assetManager.bundles.get(bundleName);
+            if (cached) {
+                doLoad(cached, onLoaded);
+                return;
+            }
+
+            // resources 是内置 bundle，理论上一定存在；此分支主要服务自定义 bundle
+            if (bundleName === DEFAULT_BUNDLE) {
+                doLoad(resources, onLoaded);
+                return;
+            }
+
+            assetManager.loadBundle(bundleName, (err, bundle) => {
+                if (err) return reject(err);
+                doLoad(bundle, onLoaded);
+            });
+        });
+    }
+
+    /**
+     * 私有：加载完成后的统一处理（泄漏跟踪 + keeper 缓存 / 防意外释放）
+     * 单值 / 数组统一按数组遍历，避免重复分支
+     */
+    private _postProcess(res: Asset | Asset[], keeper?: ICCMResKeeper): void {
+        if (!res) return;
+
+        const list: Asset[] = Array.isArray(res) ? res : [res];
+
+        if (this.resLeakChecker) {
+            for (const asset of list) {
+                this.resLeakChecker.traceAsset(asset);
+            }
+        }
+
+        if (!keeper) return;
+
+        const valid = isValid(keeper as any);
+        for (const asset of list) {
+            if (valid) {
+                keeper.cacheAsset(asset);
+            } else {
+                // keeper 已失效：先加后减一次引用，防止意外释放外部模块的引用
+                asset.addRef();
+                asset.decRef();
+            }
+        }
     }
 }
