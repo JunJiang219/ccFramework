@@ -5,7 +5,7 @@
  * 3. 加载完成后统一处理：泄漏跟踪 + keeper 缓存
  */
 
-import { Asset, assetManager, AssetManager, isValid, resources } from "cc";
+import { Asset, assetManager, AssetManager, isValid } from "cc";
 import { CCMResLeakChecker } from "./CCMResLeakChecker";
 import { ICCMResKeeper, LoadOptions, RemoteLoadOptions } from "./CCMResDefs";
 import CCMSingleton from "../CCMBase/CCMSingleton";
@@ -85,12 +85,6 @@ export default class CCMResLoader extends CCMSingleton {
             const cached = assetManager.bundles.get(bundleName);
             if (cached) {
                 doLoad(cached, onLoaded);
-                return;
-            }
-
-            // resources 是内置 bundle，理论上一定存在；此分支主要服务自定义 bundle
-            if (bundleName === DEFAULT_BUNDLE) {
-                doLoad(resources, onLoaded);
                 return;
             }
 
